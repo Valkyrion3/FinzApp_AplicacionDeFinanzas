@@ -105,7 +105,7 @@ export default function BilleteraScreen() {
                                 <View style={estilos.iconoWrapper}>
                                     <Image
                                         source={require('../../assets/images/icon.png')}
-                                        style={estilos.icono}
+                                        style={estilos.logoBilletera}
                                     />
                                 </View>
                                 <View style={estilos.info}>
@@ -210,10 +210,10 @@ const estilos = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    icono: {
+    logoBilletera: {
         width: 28,
         height: 28,
-        tintColor: Colors.secondary,
+        resizeMode: 'contain',
     },
     info: {
         flex: 1,

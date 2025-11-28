@@ -1,5 +1,4 @@
-import { Entypo, Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
@@ -11,7 +10,6 @@ export default function NuevaBilletera() {
     const router = useRouter();
     const { usuario } = useAuth();
     const [nombre, setNombre] = useState('');
-    const [imagen, setImagen] = useState<string | null>(null);
     const [cargando, setCargando] = useState(false);
 
     const aceptar = () => {
@@ -42,18 +40,6 @@ export default function NuevaBilletera() {
         });
     };
 
-    const seleccionarImagen = async () => {
-        const resultado = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 0.7,
-        });
-
-        if (!resultado.canceled && resultado.assets.length > 0) {
-            setImagen(resultado.assets[0].uri);
-        }
-    };
 
     return (
         <View style={estilos.contenedor}>
@@ -73,16 +59,10 @@ export default function NuevaBilletera() {
                 onChangeText={setNombre}
             />
 
-            <TouchableOpacity style={estilos.subirImagen} onPress={seleccionarImagen}>
-                {imagen ? (
-                    <Image source={{ uri: imagen }} style={estilos.imagenPrevia} />
-                ) : (
-                    <>
-                        <Entypo name="upload" size={24} color="#aaa" />
-                        <Text style={estilos.textoSubir}>Subir imagen</Text>
-                    </>
-                )}
-            </TouchableOpacity>
+
+            <View style={estilos.logoWrapper}>
+                <Image source={require('../../assets/images/icon.png')} style={estilos.logoBilletera} />
+            </View>
 
             <TouchableOpacity 
                 style={[estilos.boton, cargando && estilos.botonDeshabilitado]} 
@@ -128,25 +108,16 @@ const estilos = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#888',
     },
-    subirImagen: {
+    logoWrapper: {
         height: 120,
-        borderWidth: 1,
-        borderColor: '#555',
-        borderStyle: 'dashed',
-        borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 30,
     },
-    textoSubir: {
-        color: '#aaa',
-        marginTop: 8,
-    },
-    imagenPrevia: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 10,
-        resizeMode: 'cover',
+    logoBilletera: {
+        width: 80,
+        height: 80,
+        resizeMode: 'contain',
     },
     boton: {
         backgroundColor: '#9C27B0',
