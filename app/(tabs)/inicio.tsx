@@ -148,7 +148,11 @@ export default function Inicio() {
 
             {/* Lista de transacciones - más compacta */}
             {!cargando && transacciones.length > 0 && (
-                <GlassCard style={estilos.transaccionesCard}>
+                <GlassCard style={{
+                    ...estilos.transaccionesCard,
+                    minHeight: 200,
+                    justifyContent: 'flex-start',
+                }}>
                     <View style={estilos.encabezadoTransacciones}>
                         <Text style={estilos.tituloSeccion}>Últimas transacciones</Text>
                         <TouchableOpacity onPress={() => router.push('/(tabs)/estadisticas' as any)}>
@@ -245,7 +249,7 @@ const estilos = StyleSheet.create({
         flex: 1,
         paddingHorizontal: 24,
         paddingTop: 60,
-        paddingBottom: 140,
+        paddingBottom: 24, // Reducido para permitir que el recuadro y el botón flotante se extiendan más
     },
     encabezado: {
         flexDirection: 'row',
@@ -332,6 +336,8 @@ const estilos = StyleSheet.create({
         flex: 1,
         marginBottom: 20,
         paddingHorizontal: 8,
+        minHeight: 200, // Asegura que el recuadro tenga altura mínima
+        justifyContent: 'flex-start',
     },
     encabezadoTransacciones: {
         flexDirection: 'row',
@@ -429,7 +435,7 @@ const estilos = StyleSheet.create({
     // Botón flotante
     botonFlotante: {
         position: 'absolute',
-        bottom: 140, // Moved higher to avoid navigation bar
+        bottom: 32, // Más cerca del borde inferior
         right: 30,
         backgroundColor: Colors.primary,
         width: 56,
