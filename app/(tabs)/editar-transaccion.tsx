@@ -2,8 +2,9 @@ import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { TextField } from '../../components/ui/TextField';
 import { actualizarTransaccion, Billetera, eliminarTransaccion, obtenerBilleteras } from '../../database';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -19,10 +20,6 @@ export default function EditarTransaccion() {
     const [categoria, setCategoria] = useState(params.categoria as string || '');
     const [monto, setMonto] = useState(params.monto as string || '');
     const [descripcion, setDescripcion] = useState(params.descripcion as string || '');
-    const montoRef = useRef(monto);
-    const descripcionRef = useRef(descripcion);
-    const debounceMonto = useRef<number | null>(null);
-    const debounceDescripcion = useRef<number | null>(null);
     const [billeteras, setBilleteras] = useState<Billetera[]>([]);
     const [cargando, setCargando] = useState(false);
 
@@ -165,47 +162,28 @@ export default function EditarTransaccion() {
                 </Picker>
             </View>
 
+
             <Text style={estilos.etiqueta}>Monto</Text>
-            <TextInput
+            <TextField
+                label="Monto"
                 placeholder="0.00"
-                placeholderTextColor="#aaa"
-                style={estilos.input}
                 keyboardType="numeric"
                 value={monto}
-                onChangeText={(text) => {
-                    montoRef.current = text;
-                    if (debounceMonto.current) clearTimeout(debounceMonto.current as any);
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    debounceMonto.current = setTimeout(() => {
-                        setMonto(montoRef.current);
-                        debounceMonto.current = null;
-                    }, 150) as any;
-                }}
+                onChangeText={setMonto}
+                style={estilos.input}
                 editable={!cargando}
-                onFocus={() => console.log('Editar Monto onFocus')}
-                onBlur={() => console.log('Editar Monto onBlur')}
             />
 
             <Text style={estilos.etiqueta}>Descripción (Opcional)</Text>
-            <TextInput
+            <TextField
+                label="Descripción"
                 placeholder="Descripción de la transacción"
-                placeholderTextColor="#aaa"
-                style={[estilos.input, { height: 80, textAlignVertical: 'top' }]}
                 multiline
                 numberOfLines={4}
                 value={descripcion}
-                onChangeText={(text) => {
-                    descripcionRef.current = text;
-                    if (debounceDescripcion.current) clearTimeout(debounceDescripcion.current as any);
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    debounceDescripcion.current = setTimeout(() => {
-                        setDescripcion(descripcionRef.current);
-                        debounceDescripcion.current = null;
-                    }, 200) as any;
-                }}
+                onChangeText={setDescripcion}
+                style={[estilos.input, { height: 80, textAlignVertical: 'top' }]}
                 editable={!cargando}
-                onFocus={() => console.log('Editar Descripcion onFocus')}
-                onBlur={() => console.log('Editar Descripcion onBlur')}
             />
 
             <View style={estilos.filaBotones}>
