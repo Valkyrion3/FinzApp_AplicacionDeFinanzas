@@ -1,0 +1,78 @@
+{
+  "expo": {
+    "name": "FinzApp",
+    "slug": "finzapp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/finzapp-icon.png",
+    "scheme": "finzapp",
+    "userInterfaceStyle": "automatic",
+
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mora.finzapp"
+    },
+
+    "android": {
+      "package": "com.mora.finzapp",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/finzapp-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true
+    },
+
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/finzapp-icon.png"
+    },
+
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "gradleProperties": {
+              "newArchEnabled": "true"
+            }
+          }
+        }
+      ],
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "expo-sqlite",
+        {
+          "enableFTS": true,
+          "useSQLCipher": true,
+          "android": {
+            "enableFTS": false,
+            "useSQLCipher": false
+          },
+          "ios": {
+            "customBuildFlags": [
+              "-DSQLITE_ENABLE_DBSTAT_VTAB=1 -DSQLITE_ENABLE_SNAPSHOT=1"
+            ]
+          }
+        }
+      ]
+    ],
+
+    "experiments": {
+      "typedRoutes": true
+    },
+
+    "extra": {
+      "router": {}
+    }
+  }
+}
