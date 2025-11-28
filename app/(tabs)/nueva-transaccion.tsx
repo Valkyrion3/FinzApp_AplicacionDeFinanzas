@@ -3,7 +3,8 @@ import { Picker } from '@react-native-picker/picker';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { TextField } from '../../components/ui/TextField';
 import { Billetera, crearTransaccion, obtenerBilleteras } from '../../database';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -17,11 +18,6 @@ export default function NuevaTransaccion() {
     const [categoria, setCategoria] = useState('');
     const [monto, setMonto] = useState('');
     const [descripcion, setDescripcion] = useState('');
-    // refs para debounce y valores locales (evita re-renders por cada tecla)
-    const montoRef = useRef(monto);
-    const descripcionRef = useRef(descripcion);
-    const debounceMonto = useRef<number | null>(null);
-    const debounceDescripcion = useRef<number | null>(null);
     const [billeteras, setBilleteras] = useState<Billetera[]>([]);
     const [cargando, setCargando] = useState(false);
 
@@ -175,46 +171,26 @@ export default function NuevaTransaccion() {
                 </Picker>
             </View>
 
+
             <Text style={estilos.etiqueta}>Monto</Text>
-            <TextInput
+            <TextField
+                label="Monto"
                 placeholder="0.00"
-                placeholderTextColor="#aaa"
-                style={estilos.input}
                 keyboardType="numeric"
                 value={monto}
-                onChangeText={(text) => {
-                    // actualizar ref inmediatamente y hacer debounce del setState
-                    montoRef.current = text;
-                    if (debounceMonto.current) clearTimeout(debounceMonto.current as any);
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    debounceMonto.current = setTimeout(() => {
-                        setMonto(montoRef.current);
-                        debounceMonto.current = null;
-                    }, 150) as any;
-                }}
-                onFocus={() => console.log('Monto onFocus')}
-                onBlur={() => console.log('Monto onBlur')}
+                onChangeText={setMonto}
+                style={estilos.input}
             />
 
             <Text style={estilos.etiqueta}>Descripción (Opcional)</Text>
-            <TextInput
-                placeholder=""
-                placeholderTextColor="#aaa"
-                style={[estilos.input, { height: 80, textAlignVertical: 'top' }]}
+            <TextField
+                label="Descripción"
+                placeholder="Descripción de la transacción"
                 multiline
                 numberOfLines={4}
                 value={descripcion}
-                onChangeText={(text) => {
-                    descripcionRef.current = text;
-                    if (debounceDescripcion.current) clearTimeout(debounceDescripcion.current as any);
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    debounceDescripcion.current = setTimeout(() => {
-                        setDescripcion(descripcionRef.current);
-                        debounceDescripcion.current = null;
-                    }, 200) as any;
-                }}
-                onFocus={() => console.log('Descripcion onFocus')}
-                onBlur={() => console.log('Descripcion onBlur')}
+                onChangeText={setDescripcion}
+                style={[estilos.input, { height: 80, textAlignVertical: 'top' }]}
             />
 
             <TouchableOpacity 
