@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { obtenerEstadisticas } from '../../database';
 import { useAuth } from '../../hooks/useAuth';
+import { useSafeBack } from '../../hooks/useSafeBack';
 
 interface EstadisticasUsuario {
     totalBilleteras: number;
@@ -16,6 +17,7 @@ interface EstadisticasUsuario {
 
 export default function EstadisticasUsuario() {
     const router = useRouter();
+    const safeBack = useSafeBack();
     const { usuario } = useAuth();
     const [estadisticas, setEstadisticas] = useState<EstadisticasUsuario>({
         totalBilleteras: 0,
@@ -64,7 +66,7 @@ export default function EstadisticasUsuario() {
         <ScrollView contentContainerStyle={estilos.contenedor} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             <StatusBar style="light" />
             
-            <TouchableOpacity onPress={() => router.back()} style={estilos.retroceso}>
+            <TouchableOpacity onPress={() => safeBack('configuracion')} style={estilos.retroceso}>
                 <Ionicons name="arrow-back" size={24} color="white" />
             </TouchableOpacity>
 

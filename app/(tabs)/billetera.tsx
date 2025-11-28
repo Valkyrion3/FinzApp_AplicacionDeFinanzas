@@ -72,7 +72,7 @@ export default function BilleteraScreen() {
                     </Text>
                     <PrimaryButton
                         label="Nueva billetera"
-                        onPress={() => router.push('/(tabs)/nueva-billetera')}
+                        onPress={() => router.push('nueva-billetera' as any)}
                         small
                         icon={<Ionicons name="add" size={18} color={Colors.white} />}
                     />
@@ -93,7 +93,7 @@ export default function BilleteraScreen() {
                                 style={estilos.item}
                                 onPress={() =>
                                     router.push({
-                                        pathname: '/(tabs)/detalle-billetera',
+                                        pathname: 'detalle-billetera' as any,
                                         params: {
                                             id: billetera.id.toString(),
                                             nombre: billetera.nombre,

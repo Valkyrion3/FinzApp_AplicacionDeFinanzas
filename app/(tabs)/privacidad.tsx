@@ -1,15 +1,17 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeBack } from '../../hooks/useSafeBack';
 
 export default function Privacidad() {
     const router = useRouter();
+    const safeBack = useSafeBack();
 
     return (
         <View style={estilos.contenedor}>
             <StatusBar style="light" />
-            <TouchableOpacity onPress={() => router.back()} style={estilos.retroceso}>
+            <TouchableOpacity onPress={() => safeBack('perfil')} style={estilos.retroceso}>
                 <Ionicons name="arrow-back" size={24} color="white" />
             </TouchableOpacity>
 

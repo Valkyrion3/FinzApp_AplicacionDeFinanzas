@@ -8,6 +8,7 @@ import { useAuth } from '../../hooks/useAuth';
 
 export default function Buscar() {
     const router = useRouter();
+        // const safeBack = useSafeBack(); // Removed unused variable
     const { usuario } = useAuth();
     const [busqueda, setBusqueda] = useState('');
     const [transacciones, setTransacciones] = useState<Transaccion[]>([]);
@@ -32,7 +33,7 @@ export default function Buscar() {
         <View style={estilos.contenedor}>
             <StatusBar style="light" />
 
-            <TouchableOpacity onPress={() => router.back()} style={estilos.retroceso}>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/inicio' as any) } style={estilos.retroceso}>
                 <Ionicons name="arrow-back" size={24} color="white" />
             </TouchableOpacity>
 

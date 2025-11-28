@@ -5,10 +5,12 @@ import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { actualizarUsuario, Usuario } from '../../database';
 import { useAuth } from '../../hooks/useAuth';
+import { useSafeBack } from '../../hooks/useSafeBack';
 
 export default function EditarPerfil() {
     const router = useRouter();
     const { usuario, guardarSesion } = useAuth();
+    const safeBack = useSafeBack();
 
     console.log('Render EditarPerfil');
 
@@ -50,11 +52,11 @@ export default function EditarPerfil() {
         actualizarUsuario(usuario.id, nombre.trim(), apellido.trim(), async (exito: boolean, mensaje: string, usuarioActualizado?: Usuario) => {
             setCargando(false);
             
-            if (exito && usuarioActualizado) {
+                if (exito && usuarioActualizado) {
                 // Actualizar la sesión con los nuevos datos
                 await guardarSesion(usuarioActualizado);
                 Alert.alert('Éxito', mensaje, [
-                    { text: 'OK', onPress: () => router.back() }
+                    { text: 'OK', onPress: () => router.push('/(tabs)/perfil' as any) }      
                 ]);
             } else {
                 Alert.alert('Error', mensaje);
@@ -66,7 +68,7 @@ export default function EditarPerfil() {
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={estilos.contenedor}>
             <StatusBar style="light" />
-            <TouchableOpacity onPress={() => router.back()} style={estilos.retroceso}>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/perfil' as any)} style={estilos.retroceso}>
                 <Ionicons name="arrow-back" size={24} color="white" />
             </TouchableOpacity>
 
@@ -74,9 +76,6 @@ export default function EditarPerfil() {
 
             <View style={estilos.iconoPerfilContainer}>
                 <FontAwesome name="user-circle" size={100} color="white" />
-                <TouchableOpacity style={estilos.editarIcono}>
-                    <Ionicons name="create" size={20} color="#121212" />
-                </TouchableOpacity>
             </View>
 
             <Text style={estilos.etiqueta}>Nombre</Text>

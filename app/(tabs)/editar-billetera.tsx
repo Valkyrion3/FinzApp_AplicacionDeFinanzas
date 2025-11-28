@@ -70,9 +70,12 @@ export default function EditarBilletera() {
         actualizarBilletera(billetera.id, nombre.trim(), (exito: boolean, mensaje: string) => {
             setGuardando(false);
             
-            if (exito) {
+                if (exito) {
                 Alert.alert('Éxito', 'Billetera actualizada exitosamente.', [
-                    { text: 'OK', onPress: () => router.back() }
+                        { text: 'OK', onPress: () => {
+                            // Force explicit navigation to detalle-billetera to guarantee return
+                            router.push({ pathname: '/(tabs)/detalle-billetera' as any, params: { id: billetera.id.toString() } } as any);
+                        } }
                 ]);
             } else {
                 Alert.alert('Error', mensaje);
@@ -97,7 +100,7 @@ export default function EditarBilletera() {
                 <Text style={estilos.textoError}>Billetera no encontrada</Text>
                 <TouchableOpacity 
                     style={estilos.botonVolver}
-                    onPress={() => router.back()}
+                    onPress={() => router.push({ pathname: '/(tabs)/detalle-billetera' as any, params: { id: params.id ? String(params.id) : '' } } as any)}
                 >
                     <Text style={estilos.textoBoton}>Volver</Text>
                 </TouchableOpacity>
@@ -109,7 +112,7 @@ export default function EditarBilletera() {
         <View style={estilos.contenedor}>
             <StatusBar style="light" />
 
-            <TouchableOpacity onPress={() => router.back()} style={estilos.retroceso}>
+                <TouchableOpacity onPress={() => router.push({ pathname: '/(tabs)/detalle-billetera' as any, params: { id: params.id ? String(params.id) : '' } } as any)} style={estilos.retroceso}>
                 <Ionicons name="arrow-back" size={24} color="#fff" />
             </TouchableOpacity>
 
@@ -140,7 +143,7 @@ export default function EditarBilletera() {
             <View style={estilos.botones}>
                 <TouchableOpacity 
                     style={[estilos.boton, estilos.botonCancelar]} 
-                    onPress={() => router.back()}
+                    onPress={() => router.push({ pathname: '/(tabs)/detalle-billetera' as any, params: { id: params.id ? String(params.id) : '' } } as any)}
                     disabled={guardando}
                 >
                     <Text style={estilos.textoBoton}>Cancelar</Text>

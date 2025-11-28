@@ -1,7 +1,7 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function CerrarSesion() {
     const router = useRouter();
@@ -27,7 +27,7 @@ export default function CerrarSesion() {
     return (
         <View style={estilos.contenedor}>
             <StatusBar style="light" />
-            <TouchableOpacity onPress={() => router.back()} style={estilos.retroceso}>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/perfil' as any)} style={estilos.retroceso}>
                 <Ionicons name="arrow-back" size={24} color="white" />
             </TouchableOpacity>
 

@@ -372,7 +372,7 @@ export default function Estadisticas() {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                         console.log('🔄 Navegando desde estadísticas a editar transacción:', item.id);
                         router.push({
-                            pathname: '/(tabs)/editar-transaccion' as any,
+                            pathname: 'editar-transaccion' as any,
                             params: {
                                 id: item.id.toString(),
                                 categoria: item.categoria,

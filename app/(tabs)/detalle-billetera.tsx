@@ -18,6 +18,7 @@ import { useAuth } from '../../hooks/useAuth';
 
 export default function DetalleBilletera() {
     const router = useRouter();
+    // const safeBack = useSafeBack();
     const { usuario } = useAuth();
     const params = useLocalSearchParams();
     
@@ -156,7 +157,7 @@ export default function DetalleBilletera() {
                             
                             if (exito) {
                                 Alert.alert('Éxito', 'Billetera eliminada exitosamente.', [
-                                    { text: 'OK', onPress: () => router.back() }
+                                    { text: 'OK', onPress: () => router.push('/(tabs)/billetera' as any) }
                                 ]);
                             } else {
                                 Alert.alert('Error', mensaje);
@@ -171,8 +172,8 @@ export default function DetalleBilletera() {
     const editar = () => {
         if (billetera) {
             console.log('Navegando a editar billetera, id:', billetera.id);
-            // Evitamos problemas de navegación cambiando la forma de navegar
-            router.push(`/(tabs)/editar-billetera?id=${billetera.id}`);
+            // Navegar de forma relativa dentro del grupo de tabs
+            router.push({ pathname: 'editar-billetera' as any, params: { id: billetera.id.toString() } });
         }
     };
 
@@ -193,7 +194,7 @@ export default function DetalleBilletera() {
                 <Text style={estilos.textoError}>Billetera no encontrada</Text>
                 <TouchableOpacity 
                     style={estilos.botonVolver}
-                    onPress={() => router.back()}
+                    onPress={() => router.push('/(tabs)/billetera' as any)}
                 >
                     <Text style={estilos.textoBoton}>Volver</Text>
                 </TouchableOpacity>
@@ -205,7 +206,7 @@ export default function DetalleBilletera() {
         <View style={estilos.contenedor}>
             <StatusBar style="light" />
             <View style={estilos.encabezado}>
-                <TouchableOpacity onPress={() => router.back()}>
+                <TouchableOpacity onPress={() => router.push('/(tabs)/billetera' as any)}>
                     <Ionicons name="arrow-back" size={26} color="white" />
                 </TouchableOpacity>
 

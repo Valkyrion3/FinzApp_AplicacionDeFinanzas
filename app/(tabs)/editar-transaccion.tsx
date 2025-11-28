@@ -15,11 +15,14 @@ export default function EditarTransaccion() {
 
     console.log('Render EditarTransaccion');
 
-    const [tipo, setTipo] = useState(params.tipo as string || '');
-    const [billeteraId, setBilleteraId] = useState(params.billetera_id as string || '');
-    const [categoria, setCategoria] = useState(params.categoria as string || '');
-    const [monto, setMonto] = useState(params.monto as string || '');
-    const [descripcion, setDescripcion] = useState(params.descripcion as string || '');
+    // Accept either `billetera_id` or `billeteraId` depending on where the navigation came from.
+    const incomingBilleteraId = (params as any).billetera_id || (params as any).billeteraId || '';
+
+    const [tipo, setTipo] = useState((params.tipo as string) || '');
+    const [billeteraId, setBilleteraId] = useState(incomingBilleteraId as string || '');
+    const [categoria, setCategoria] = useState((params.categoria as string) || '');
+    const [monto, setMonto] = useState((params.monto as string) || '');
+    const [descripcion, setDescripcion] = useState((params.descripcion as string) || '');
     const [billeteras, setBilleteras] = useState<Billetera[]>([]);
     const [cargando, setCargando] = useState(false);
 
@@ -56,7 +59,10 @@ export default function EditarTransaccion() {
                 
                 if (exito) {
                     Alert.alert('Éxito', mensaje, [
-                        { text: 'OK', onPress: () => router.back() }
+                                { text: 'OK', onPress: () => {
+                                    // Always redirect to inicio after editing a transaction.
+                                    router.push('/(tabs)/inicio' as any);
+                                } }
                     ]);
                 } else {
                     Alert.alert('Error', mensaje);
@@ -79,9 +85,12 @@ export default function EditarTransaccion() {
                         eliminarTransaccion(parseInt(params.id as string), (exito: boolean, mensaje: string) => {
                             setCargando(false);
                             
-                            if (exito) {
+                                if (exito) {
                                 Alert.alert('Éxito', mensaje, [
-                                    { text: 'OK', onPress: () => router.back() }
+                                    { text: 'OK', onPress: () => {
+                                        // After deletion, always go to inicio to avoid navigation issues.
+                                        router.push('/(tabs)/inicio' as any);
+                                    } }
                                 ]);
                             } else {
                                 Alert.alert('Error', mensaje);
@@ -98,7 +107,10 @@ export default function EditarTransaccion() {
         <ScrollView contentContainerStyle={estilos.contenedor} keyboardShouldPersistTaps="always">
             <StatusBar style="light" />
 
-            <TouchableOpacity onPress={() => router.back()} style={estilos.retroceso}>
+            <TouchableOpacity onPress={() => {
+                // Header back should always send user to inicio for transactions edits.
+                router.push('/(tabs)/inicio' as any);
+            }} style={estilos.retroceso}>
                 <Ionicons name="arrow-back" size={24} color="white" />
             </TouchableOpacity>
 

@@ -27,11 +27,10 @@ export default function NuevaBilletera() {
 
         crearBilletera(usuario.id, nombre.trim(), (exito: boolean, mensaje: string) => {
             setCargando(false);
-            
             if (exito) {
                 console.log('Billetera creada exitosamente');
                 Alert.alert('Éxito', 'Billetera creada exitosamente.', [
-                    { text: 'OK', onPress: () => router.back() }
+                    { text: 'OK', onPress: () => router.push('/(tabs)/billetera' as any) }
                 ]);
             } else {
                 console.log('Error al crear billetera:', mensaje);
@@ -44,7 +43,7 @@ export default function NuevaBilletera() {
     return (
         <View style={estilos.contenedor}>
             <StatusBar style="light" />
-            <TouchableOpacity onPress={() => router.back()} style={estilos.retroceso}>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/billetera' as any)} style={estilos.retroceso}>
                 <Ionicons name="arrow-back" size={24} color="white" />
             </TouchableOpacity>
 

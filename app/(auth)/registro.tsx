@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import {
     Alert,
@@ -13,8 +13,8 @@ import {
     View,
 } from 'react-native';
 
-import { GradientBackground } from '../../components/ui/GradientBackground';
 import { GlassCard } from '../../components/ui/GlassCard';
+import { GradientBackground } from '../../components/ui/GradientBackground';
 import { PrimaryButton } from '../../components/ui/PrimaryButton';
 import { TextField } from '../../components/ui/TextField';
 import { Colors } from '../../constants/Colors';
@@ -109,9 +109,8 @@ export default function Registro() {
                         <GlassCard style={estilos.card}>
                             <View style={estilos.header}>
                                 <View>
-                                    <Text style={estilos.etiqueta}>Crea tu perfil</Text>
+                                    <Text style={estilos.etiqueta}>Crea tu perfil=</Text>
                             <Text style={estilos.titulo}>Registro</Text>
-                            <Text style={estilos.subtitulo}>Diseñado para ayudarte a mantener el control sin esfuerzo.</Text>
                         </View>
                         <View style={estilos.iconWrapper}>
                             <Ionicons name="person-add" size={28} color={Colors.white} />
