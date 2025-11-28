@@ -4,14 +4,13 @@ import { Picker } from '@react-native-picker/picker';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { GlassCard } from '../../components/ui/GlassCard';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ChartCard } from '../../components/ChartCard';
+import { Colors } from '../../constants/Colors';
 import { Billetera, obtenerBilleteras, obtenerTransacciones, obtenerTransaccionesPorBilletera, Transaccion } from '../../database';
 import { useAuth } from '../../hooks/useAuth';
-import { Colors } from '../../constants/Colors';
 
 const screenWidth = Dimensions.get('window').width;
 
