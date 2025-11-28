@@ -1,3 +1,17 @@
+/**
+ * @fileoverview Capa de abstracción de base de datos multiplataforma
+ * @module database
+ * @description Detecta la plataforma (iOS/Android/Web) y carga la implementación
+ * de base de datos apropiada. Mobile usa SQLite nativo, Web usa localStorage.
+ * 
+ * @example
+ * // Importar funciones de base de datos
+ * import { initDB, registrarUsuario, obtenerBilleteras } from '@/database';
+ * 
+ * @author Marco Campos, Erick Mora y Edgar Ventura
+ * @version 1.0.0
+ */
+
 // @ts-nocheck
 // Platform-agnostic database implementation
 // FORCES native SQLite for mobile platforms

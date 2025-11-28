@@ -1,5 +1,7 @@
 {
-  "name": "appgastos",
+  "name": "finzapp",
+  "description": "Aplicación móvil de finanzas personales - Control de gastos, ingresos y billeteras",
+  "author": "Marco Campos, Erick Mora y Edgar Ventura",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {

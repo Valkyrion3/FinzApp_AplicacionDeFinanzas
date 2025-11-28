@@ -1,89 +1,193 @@
-# AppGastos
+# FinzApp 💰
 
-Aplicación móvil para el control de gastos personales y administración de múltiples billeteras, desarrollada con Expo y React Native.
+> Aplicación móvil de finanzas personales para el control de gastos, ingresos y administración de múltiples billeteras.
 
----
-
-## Descripción General
-AppGastos permite a los usuarios registrar, visualizar y analizar sus gastos e ingresos de manera intuitiva, con soporte para múltiples billeteras (efectivo, banco, etc.), estadísticas visuales y una experiencia moderna y responsiva.
-
----
-
-## Tecnologías Utilizadas
-- **React Native** (Expo SDK 53+)
-- **TypeScript**
-- **expo-router** (Navegación)
-- **expo-sqlite/legacy** (Base de datos local persistente)
-- **@react-native-picker/picker** (Selector de billetera)
-- **react-native-chart-kit** (Gráficas y estadísticas)
-- **@expo/vector-icons** (Iconografía)
-- **React Native Paper** (opcional, para UI)
+[![React Native](https://img.shields.io/badge/React%20Native-0.81.5-blue.svg)](https://reactnative.dev/)
+[![Expo](https://img.shields.io/badge/Expo-SDK%2054-black.svg)](https://expo.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue.svg)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ---
 
-## Estructura del Proyecto
-# AppGastos — Resumen y guía rápida
+## 📱 Descripción
 
-AppGastos es una app Expo/React Native para llevar control de gastos e ingresos con soporte para múltiples billeteras y estadísticas locales.
+**FinzApp** es una aplicación móvil desarrollada con React Native y Expo que permite a los usuarios gestionar sus finanzas personales de manera intuitiva. Cuenta con soporte para múltiples billeteras (efectivo, banco, tarjetas, etc.), estadísticas visuales con gráficos interactivos y una experiencia de usuario moderna.
 
-Archivos de documentación completos se movieron a `docs_backup/` para dejar la raíz limpia. Si necesitas detalles, revisa esa carpeta.
+### ✨ Características Principales
 
-Resumen rápido de uso (Windows / PowerShell):
-
-- Requisitos mínimos:
-  - Node >= 16
-  - npm o yarn
-  - Expo CLI / EAS CLI (opcional para builds)
-  - Android Studio + SDK (para emulador) o dispositivo físico
-
-- Instalar y ejecutar en desarrollo:
-  1. npm install
-  2. npm start
-  3. Usa Expo Go (QR) o presiona "a" para abrir en emulador Android
-
-- Generar APK con EAS (recomendado - cloud):
-  1. npm install -g eas-cli   # o usa npx
-  2. eas login
-  3. eas build -p android --profile production
-  4. Descargar el .apk desde la URL que entrega EAS
-
-- Generar AAB (para Play Store):
-  - Edita `eas.json` -> profile production -> set "android.buildType": "app-bundle"
-  - Luego: eas build -p android --profile production
-
-- Instalar el APK en dispositivo/emulador (PowerShell):
-  - adb install -r path\to\app.apk
-
-Notas importantes:
-- La configuración del package Android está en `app.json` (android.package).
-- Las builds por EAS pueden requerir que inicies sesión con la cuenta que administra el proyecto (eas login / eas whoami).
-- Se crearon copias de seguridad de todos los documentos originales en `docs_backup/`.
-
-Si quieres que deje SOLO un archivo .md en la raíz (el README actual) y reduzca o elimine los pointers restantes, dime y lo dejo exactamente así.
+- 🔐 **Autenticación local** - Registro e inicio de sesión seguro
+- 💼 **Múltiples billeteras** - Gestiona efectivo, cuentas bancarias, tarjetas, etc.
+- 📊 **Estadísticas visuales** - Gráficos de gastos e ingresos por categoría
+- 💸 **Transacciones** - Registra ingresos y gastos con categorías personalizadas
+- 📱 **Offline-first** - Funciona sin conexión a internet (SQLite local)
+- 🌙 **Tema oscuro/claro** - Interfaz adaptable a preferencias del usuario
+- 📤 **Exportar/Importar** - Respaldo y restauración de datos
 
 ---
 
-Archivos movidos a `docs_backup/` (resumen):
-- CHECKLIST.md
-- ARQUITECTURA.md
-- RESUMEN_MEJORAS.md
-- RESULTADO_FINAL.md
-- RECOMMENDED_DEPENDENCIES.md
-- MEJORAS_README.md
-- INDICE_CAMBIOS.md
-- GUIA_IMPLEMENTACION.md
-- ANDROID_STUDIO_CONFIG.md
-- ANDROID_SETUP.md
-- ANALISIS_Y_MEJORAS.md
-- api/README.md
+## 🛠️ Tecnologías
+
+| Tecnología | Versión | Descripción |
+|------------|---------|-------------|
+| React Native | 0.81.5 | Framework móvil multiplataforma |
+| Expo | SDK 54 | Plataforma de desarrollo |
+| TypeScript | 5.9.2 | Tipado estático |
+| expo-router | 6.0.13 | Navegación basada en archivos |
+| expo-sqlite | 16.0.8 | Base de datos local |
+| react-native-chart-kit | 6.12.0 | Gráficos y estadísticas |
+| AsyncStorage | 2.2.0 | Almacenamiento de sesión |
 
 ---
 
-Si quieres, puedo:
-1. Reducir todos los .md en la raíz a un solo README (ya preparé este).  
-2. Hacer commit con un mensaje claro (si me das permiso para ejecutar comandos).  
-3. Actualizar `eas.json` para AAB si vas a publicar en Play.
+## 📁 Estructura del Proyecto
 
-Di qué prefieres y lo hago.
-2. Agrega ingresos y gastos con categoría
-# FinzApp_AplicacionDeFinanzas
+```
+FinzApp/
+├── app/                    # Pantallas (expo-router)
+│   ├── (auth)/            # Autenticación (login, registro)
+│   ├── (tabs)/            # Pestañas principales
+│   │   ├── inicio.tsx     # Dashboard principal
+│   │   ├── billetera.tsx  # Lista de billeteras
+│   │   ├── estadisticas.tsx # Gráficos
+│   │   └── perfil.tsx     # Perfil de usuario
+│   └── _layout.tsx        # Layout raíz
+├── components/            # Componentes reutilizables
+│   ├── ui/               # Componentes de UI
+│   └── ChartCard.tsx     # Tarjetas de gráficos
+├── database/             # Capa de datos SQLite
+│   ├── db.ts            # Implementación nativa
+│   ├── db.web.ts        # Fallback web (localStorage)
+│   └── index.ts         # Abstracción de plataforma
+├── hooks/                # Custom hooks
+│   ├── useAuth.ts       # Autenticación
+│   └── useNotification.ts # Notificaciones
+├── lib/                  # Utilidades
+│   ├── validators.ts    # Validación de inputs
+│   └── logger.ts        # Sistema de logs
+├── constants/            # Constantes y colores
+└── assets/              # Imágenes y fuentes
+```
+
+---
+
+## 🚀 Instalación y Uso
+
+### Requisitos Previos
+
+- Node.js >= 18
+- npm o yarn
+- Expo CLI (`npm install -g expo-cli`)
+- Android Studio + SDK (para emulador) o dispositivo físico
+- Expo Go (app móvil para desarrollo)
+
+### Instalación
+
+```bash
+# Clonar repositorio
+git clone https://github.com/SoyMarko/FinzApp_AplicacionDeFinanzas.git
+
+# Entrar al directorio
+cd FinzApp_AplicacionDeFinanzas
+
+# Instalar dependencias
+npm install
+
+# Iniciar en modo desarrollo
+npm start
+```
+
+### Ejecutar en Dispositivo
+
+```bash
+# Android (emulador o dispositivo)
+npm run android
+
+# iOS (solo macOS)
+npm run ios
+
+# Web
+npm run web
+```
+
+---
+
+## 📦 Generar APK
+
+### Usando EAS Build (Recomendado)
+
+```bash
+# Instalar EAS CLI
+npm install -g eas-cli
+
+# Iniciar sesión en Expo
+eas login
+
+# Generar APK de producción
+eas build -p android --profile production
+```
+
+### Build Local (Requiere Android Studio)
+
+```bash
+# Generar proyecto nativo
+npx expo prebuild
+
+# Compilar APK
+cd android && ./gradlew assembleRelease
+```
+
+---
+
+## 📊 Modelo de Datos
+
+### Usuarios
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| id | INTEGER | Identificador único |
+| nombre | TEXT | Nombre del usuario |
+| apellido | TEXT | Apellido del usuario |
+| correo | TEXT | Correo electrónico (único) |
+| contraseña | TEXT | Contraseña encriptada |
+| fecha_registro | TEXT | Fecha de creación |
+
+### Billeteras
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| id | INTEGER | Identificador único |
+| usuario_id | INTEGER | FK a usuarios |
+| nombre | TEXT | Nombre de la billetera |
+| saldo | REAL | Saldo actual |
+| color | TEXT | Color identificador |
+| fecha_creacion | TEXT | Fecha de creación |
+
+### Transacciones
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| id | INTEGER | Identificador único |
+| billetera_id | INTEGER | FK a billeteras |
+| tipo | TEXT | 'ingreso' o 'gasto' |
+| categoria | TEXT | Categoría de la transacción |
+| monto | REAL | Cantidad |
+| descripcion | TEXT | Descripción opcional |
+| fecha | TEXT | Fecha de la transacción |
+
+---
+
+## 👨‍💻 Autor
+
+**Mora** - Proyecto escolar de desarrollo móvil
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
+
+---
+
+## 📚 Documentación Adicional
+
+La documentación técnica completa se encuentra en la carpeta `docs_backup/`:
+- `ARQUITECTURA.md` - Arquitectura del sistema
+- `GUIA_IMPLEMENTACION.md` - Guía de implementación
+- `ANDROID_SETUP.md` - Configuración de Android
