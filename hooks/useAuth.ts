@@ -1,7 +1,24 @@
+/**
+ * @fileoverview Hook de autenticación para gestión de sesión de usuario
+ * @module hooks/useAuth
+ * @description Proporciona funcionalidad completa de autenticación usando AsyncStorage
+ * para persistir la sesión del usuario entre reinicios de la aplicación.
+ * 
+ * @example
+ * const { usuario, guardarSesion, cerrarSesion, estaAutenticado } = useAuth();
+ * 
+ * @author Marco Campos, Erick Mora y Edgar Ventura
+ * @version 1.0.0
+ */
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
 import { sanitizar } from '../lib/validators';
 
+/**
+ * Datos del usuario autenticado (sin contraseña)
+ * @interface Usuario
+ */
 export interface Usuario {
   id: number;
   nombre: string;
@@ -9,6 +26,11 @@ export interface Usuario {
   correo: string;
 }
 
+/**
+ * Estado interno del hook de autenticación
+ * @interface AuthState
+ * @private
+ */
 interface AuthState {
   usuario: Usuario | null;
   cargando: boolean;
@@ -16,8 +38,28 @@ interface AuthState {
 }
 
 /**
- * Custom hook for authentication management
- * Handles user session persistence and validation
+ * Hook personalizado para gestión de autenticación
+ * @function useAuth
+ * @description Maneja la persistencia de sesión usando AsyncStorage.
+ * Verifica automáticamente si hay una sesión guardada al inicializar.
+ * 
+ * @returns {Object} Objeto con estado y funciones de autenticación
+ * @returns {Usuario|null} returns.usuario - Usuario autenticado o null
+ * @returns {boolean} returns.cargando - True mientras verifica sesión
+ * @returns {string|null} returns.error - Mensaje de error o null
+ * @returns {Function} returns.guardarSesion - Guarda sesión del usuario
+ * @returns {Function} returns.cerrarSesion - Cierra sesión actual
+ * @returns {Function} returns.verificarSesion - Reverifica sesión guardada
+ * @returns {Function} returns.limpiarError - Limpia estado de error
+ * @returns {boolean} returns.estaAutenticado - True si hay usuario autenticado
+ * 
+ * @example
+ * function MiComponente() {
+ *   const { usuario, estaAutenticado, cerrarSesion } = useAuth();
+ *   
+ *   if (!estaAutenticado) return <LoginScreen />;
+ *   return <Text>Bienvenido, {usuario.nombre}</Text>;
+ * }
  */
 export const useAuth = () => {
   const [state, setState] = useState<AuthState>({

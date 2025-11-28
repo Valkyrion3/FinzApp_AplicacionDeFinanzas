@@ -1,7 +1,25 @@
+/**
+ * @fileoverview Implementación nativa de base de datos SQLite para FinzApp
+ * @module database/db
+ * @description Capa de persistencia local usando expo-sqlite para plataformas móviles (iOS/Android).
+ * Proporciona operaciones CRUD para usuarios, billeteras y transacciones.
+ * 
+ * @requires expo-sqlite
+ * @author Marco Campos, Erick Mora y Edgar Ventura
+ * @version 1.0.0
+ */
+
 // @ts-nocheck
 import * as SQLite from 'expo-sqlite';
 
-// TypeScript interfaces
+// ============================================================================
+// INTERFACES - Definición de tipos para las entidades del sistema
+// ============================================================================
+
+/**
+ * Representa un usuario registrado en el sistema
+ * @interface Usuario
+ */
 export interface Usuario {
   id: number;
   nombre: string;
@@ -11,6 +29,16 @@ export interface Usuario {
   fecha_registro: string;
 }
 
+/**
+ * Representa una billetera/cuenta del usuario
+ * @interface Billetera
+ * @property {number} id - Identificador único de la billetera
+ * @property {number} usuario_id - FK al usuario propietario
+ * @property {string} nombre - Nombre descriptivo (ej: "Efectivo", "Banco")
+ * @property {number} saldo - Saldo actual de la billetera
+ * @property {string} color - Color hexadecimal para identificación visual
+ * @property {string} fecha_creacion - Timestamp de creación
+ */
 export interface Billetera {
   id: number;
   usuario_id: number;
@@ -20,6 +48,17 @@ export interface Billetera {
   fecha_creacion: string;
 }
 
+/**
+ * Representa una transacción financiera (ingreso o gasto)
+ * @interface Transaccion
+ * @property {number} id - Identificador único de la transacción
+ * @property {number} billetera_id - FK a la billetera asociada
+ * @property {'ingreso'|'gasto'} tipo - Tipo de transacción
+ * @property {string} categoria - Categoría (ej: "Comida", "Transporte")
+ * @property {number} monto - Cantidad de la transacción
+ * @property {string} descripcion - Descripción opcional
+ * @property {string} fecha - Timestamp de la transacción
+ */
 export interface Transaccion {
   id: number;
   billetera_id: number;
@@ -30,7 +69,11 @@ export interface Transaccion {
   fecha: string;
 }
 
-// Callback types
+// ============================================================================
+// TIPOS DE CALLBACK - Funciones de respuesta para operaciones asíncronas
+// ============================================================================
+
+/** Callback para operación de registro de usuario */
 export type RegistroCallback = (exito: boolean, mensaje: string) => void;
 export type LoginCallback = (exito: boolean, mensaje: string, usuario: Usuario | null) => void;
 export type BilleterasCallback = (billeteras: Billetera[]) => void;
@@ -81,6 +124,18 @@ const initializeDatabase = (): SQLite.SQLiteDatabase => {
   }
 };
 
+/**
+ * Inicializa la base de datos SQLite y crea las tablas necesarias
+ * @function initDB
+ * @description Crea las tablas usuarios, billeteras y transacciones si no existen.
+ * Debe llamarse al iniciar la aplicación antes de cualquier operación de datos.
+ * @throws {Error} Si hay un error crítico al crear las tablas
+ * @example
+ * // En _layout.tsx
+ * useEffect(() => {
+ *   initDB();
+ * }, []);
+ */
 export const initDB = () => {
   console.log('NATIVE SQLITE: Starting database initialization...');
   console.log('NATIVE SQLITE: This is the NATIVE implementation being called');
@@ -147,7 +202,23 @@ export const initDB = () => {
   }
 };
 
-// Función para registrar usuario
+// ============================================================================
+// FUNCIONES DE USUARIO - Autenticación y gestión de usuarios
+// ============================================================================
+
+/**
+ * Registra un nuevo usuario en la base de datos
+ * @function registrarUsuario
+ * @param {string} nombre - Nombre del usuario
+ * @param {string} apellido - Apellido del usuario  
+ * @param {string} correo - Correo electrónico (único)
+ * @param {string} contraseña - Contraseña del usuario
+ * @param {RegistroCallback} callback - Función de callback con resultado
+ * @example
+ * registrarUsuario('Juan', 'Pérez', 'juan@email.com', 'pass123', (exito, mensaje) => {
+ *   if (exito) console.log('Usuario registrado');
+ * });
+ */
 export const registrarUsuario = (nombre: string, apellido: string, correo: string, contraseña: string, callback: RegistroCallback) => {
   console.log('Iniciando registro de usuario:', { nombre, apellido, correo });
   
@@ -170,7 +241,17 @@ export const registrarUsuario = (nombre: string, apellido: string, correo: strin
   }
 };
 
-// Función para iniciar sesión
+/**
+ * Autentica un usuario con correo y contraseña
+ * @function iniciarSesion
+ * @param {string} correo - Correo electrónico del usuario
+ * @param {string} contraseña - Contraseña del usuario
+ * @param {LoginCallback} callback - Función de callback con resultado y datos del usuario
+ * @example
+ * iniciarSesion('juan@email.com', 'pass123', (exito, mensaje, usuario) => {
+ *   if (exito && usuario) guardarSesion(usuario);
+ * });
+ */
 export const iniciarSesion = (correo: string, contraseña: string, callback: LoginCallback) => {
   console.log('Iniciando sesión para:', correo);
   
@@ -195,7 +276,20 @@ export const iniciarSesion = (correo: string, contraseña: string, callback: Log
   }
 };
 
-// Función para obtener billeteras del usuario
+// ============================================================================
+// FUNCIONES DE BILLETERAS - CRUD de billeteras
+// ============================================================================
+
+/**
+ * Obtiene todas las billeteras de un usuario
+ * @function obtenerBilleteras
+ * @param {number} usuarioId - ID del usuario propietario
+ * @param {BilleterasCallback} callback - Función de callback con array de billeteras
+ * @example
+ * obtenerBilleteras(1, (billeteras) => {
+ *   console.log(`Usuario tiene ${billeteras.length} billeteras`);
+ * });
+ */
 export const obtenerBilleteras = (usuarioId: number, callback: BilleterasCallback) => {
   try {
     const database = initializeDatabase();
