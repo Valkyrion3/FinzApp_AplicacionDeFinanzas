@@ -20,7 +20,6 @@ import { Colors } from '../../constants/Colors';
 import { iniciarSesion, Usuario } from '../../database';
 import { useAuth } from '../../hooks/useAuth';
 import { log } from '../../lib/logger';
-import { validarCredencialesLogin } from '../../lib/validators';
 
 export default function IniciarSesion() {
     const router = useRouter();
