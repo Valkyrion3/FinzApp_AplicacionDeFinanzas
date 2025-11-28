@@ -40,10 +40,6 @@ export default function EditarBilletera() {
                 console.log('Billetera encontrada:', billeteraEncontrada.nombre);
                 setBilletera(billeteraEncontrada);
                 setNombre(billeteraEncontrada.nombre);
-                // Cargar imagen si existe
-                if ((billeteraEncontrada as any).imagen) {
-                    setImagen((billeteraEncontrada as any).imagen);
-                }
             } else {
                 console.error('Billetera no encontrada con id:', billeteraId);
                 Alert.alert('Error', 'No se encontró la billetera especificada.');
