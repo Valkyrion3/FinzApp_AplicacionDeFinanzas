@@ -1,6 +1,9 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
+import { File, Paths } from 'expo-file-system';
 import * as Notifications from 'expo-notifications';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
@@ -15,6 +18,8 @@ Notifications.setNotificationHandler({
         shouldShowAlert: true,
         shouldPlaySound: true,
         shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
     }),
 });
 
@@ -107,7 +112,7 @@ export default function Configuracion() {
         { titulo: '🌟 Motivación', mensaje: 'El dinero es una herramienta. Aprende a usarla sabiamente.' },
     ];
 
-    const notifIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const notifIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // Función para obtener un consejo aleatorio
     const obtenerConsejoAleatorio = () => {
@@ -175,7 +180,7 @@ export default function Configuracion() {
         { titulo: '🔔 Recordatorio de actividad', mensaje: '¡Hey! No has registrado gastos recientemente. Mantén el control de tus finanzas con FinzApp.' },
     ];
 
-    const recordatorioIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const recordatorioIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const ultimaHoraRecordatorio = useRef<number | null>(null);
 
     // Función para obtener un mensaje aleatorio de un array
@@ -188,7 +193,7 @@ export default function Configuracion() {
     const verificarInactividad = () => {
         if (!usuario) return;
 
-        obtenerTransacciones(usuario.id, (transacciones) => {
+        obtenerTransacciones(usuario.id, (transacciones: any[]) => {
             if (transacciones.length === 0) {
                 // No hay transacciones, enviar recordatorio
                 const mensaje = obtenerMensajeAleatorio(INACTIVIDAD_MENSAJES);
@@ -277,42 +282,353 @@ export default function Configuracion() {
         };
     }, [recordatorios, usuario]);
 
+    // ====== FUNCIONES DE EXPORTACIÓN ======
+    
+    // Función para convertir datos a formato CSV
+    const convertirACSV = (datos: any): string => {
+        let csv = '';
+        
+        // Información del usuario
+        csv += 'INFORMACIÓN DEL USUARIO\n';
+        csv += 'Nombre,Apellido,Correo,Fecha de Registro\n';
+        csv += `"${datos.usuario.nombre}","${datos.usuario.apellido}","${datos.usuario.correo}","${datos.usuario.fecha_registro}"\n\n`;
+        
+        // Billeteras
+        csv += 'BILLETERAS\n';
+        csv += 'ID,Nombre,Saldo,Tipo,Fecha de Creación\n';
+        datos.billeteras.forEach((b: any) => {
+            csv += `${b.id},"${b.nombre}",${b.saldo},"${b.tipo || 'General'}","${b.fecha_creacion}"\n`;
+        });
+        csv += '\n';
+        
+        // Transacciones
+        csv += 'TRANSACCIONES\n';
+        csv += 'ID,Billetera,Tipo,Monto,Categoría,Descripción,Fecha\n';
+        datos.transacciones.forEach((t: any) => {
+            csv += `${t.id},"${t.billetera_nombre}","${t.tipo}",${t.monto},"${t.categoria}","${t.descripcion || ''}","${t.fecha}"\n`;
+        });
+        
+        return csv;
+    };
+
+    // Función para generar HTML para PDF
+    const generarHTMLParaPDF = (datos: any): string => {
+        const fechaExport = new Date(datos.fechaExportacion).toLocaleDateString('es-ES', {
+            year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+
+        // Calcular totales
+        const totalIngresos = datos.transacciones
+            .filter((t: any) => t.tipo === 'ingreso')
+            .reduce((sum: number, t: any) => sum + t.monto, 0);
+        const totalGastos = datos.transacciones
+            .filter((t: any) => t.tipo === 'gasto')
+            .reduce((sum: number, t: any) => sum + t.monto, 0);
+        const saldoTotal = datos.billeteras.reduce((sum: number, b: any) => sum + b.saldo, 0);
+
+        return `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+                    h1 { color: #9C27B0; text-align: center; }
+                    h2 { color: #7B1FA2; border-bottom: 2px solid #9C27B0; padding-bottom: 5px; margin-top: 30px; }
+                    .header { text-align: center; margin-bottom: 30px; }
+                    .fecha { color: #666; font-size: 14px; }
+                    .resumen { background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 20px 0; }
+                    .resumen-item { display: inline-block; margin: 10px 20px; text-align: center; }
+                    .resumen-valor { font-size: 24px; font-weight: bold; }
+                    .ingreso { color: #4CAF50; }
+                    .gasto { color: #F44336; }
+                    .saldo { color: #9C27B0; }
+                    table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+                    th { background: #9C27B0; color: white; padding: 12px; text-align: left; }
+                    td { padding: 10px; border-bottom: 1px solid #ddd; }
+                    tr:nth-child(even) { background: #f9f9f9; }
+                    .footer { text-align: center; margin-top: 40px; color: #666; font-size: 12px; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>📊 Reporte Financiero - FinzApp</h1>
+                    <p><strong>${datos.usuario.nombre} ${datos.usuario.apellido}</strong></p>
+                    <p class="fecha">Exportado el: ${fechaExport}</p>
+                </div>
+
+                <div class="resumen">
+                    <div class="resumen-item">
+                        <div class="resumen-valor ingreso">$${totalIngresos.toLocaleString()}</div>
+                        <div>Total Ingresos</div>
+                    </div>
+                    <div class="resumen-item">
+                        <div class="resumen-valor gasto">$${totalGastos.toLocaleString()}</div>
+                        <div>Total Gastos</div>
+                    </div>
+                    <div class="resumen-item">
+                        <div class="resumen-valor saldo">$${saldoTotal.toLocaleString()}</div>
+                        <div>Saldo Total</div>
+                    </div>
+                </div>
+
+                <h2>💼 Billeteras (${datos.billeteras.length})</h2>
+                <table>
+                    <tr><th>Nombre</th><th>Tipo</th><th>Saldo</th></tr>
+                    ${datos.billeteras.map((b: any) => `
+                        <tr>
+                            <td>${b.nombre}</td>
+                            <td>${b.tipo || 'General'}</td>
+                            <td>$${b.saldo.toLocaleString()}</td>
+                        </tr>
+                    `).join('')}
+                </table>
+
+                <h2>📝 Transacciones (${datos.transacciones.length})</h2>
+                <table>
+                    <tr><th>Fecha</th><th>Billetera</th><th>Tipo</th><th>Categoría</th><th>Monto</th><th>Descripción</th></tr>
+                    ${datos.transacciones.map((t: any) => `
+                        <tr>
+                            <td>${new Date(t.fecha).toLocaleDateString('es-ES')}</td>
+                            <td>${t.billetera_nombre}</td>
+                            <td class="${t.tipo}">${t.tipo === 'ingreso' ? '↑ Ingreso' : '↓ Gasto'}</td>
+                            <td>${t.categoria}</td>
+                            <td class="${t.tipo}">$${t.monto.toLocaleString()}</td>
+                            <td>${t.descripcion || '-'}</td>
+                        </tr>
+                    `).join('')}
+                </table>
+
+                <div class="footer">
+                    <p>Generado con FinzApp - Tu asistente de finanzas personales</p>
+                    <p>Versión ${datos.version}</p>
+                </div>
+            </body>
+            </html>
+        `;
+    };
+
+    // Función para exportar en formato JSON
+    const exportarComoJSON = async (datos: any) => {
+        try {
+            const jsonData = JSON.stringify(datos, null, 2);
+            const fileName = `FinzApp_Backup_${new Date().toISOString().split('T')[0]}.json`;
+            
+            // Usar la nueva API de expo-file-system
+            const file = new File(Paths.cache, fileName);
+            await file.write(jsonData);
+            
+            await Sharing.shareAsync(file.uri, {
+                mimeType: 'application/json',
+                dialogTitle: 'Exportar datos en JSON'
+            });
+            
+            Alert.alert('Éxito', 'Datos exportados en formato JSON');
+        } catch (error) {
+            console.error('Error exportando JSON:', error);
+            Alert.alert('Error', 'No se pudo exportar en formato JSON');
+        }
+    };
+
+    // Función para exportar en formato CSV
+    const exportarComoCSV = async (datos: any) => {
+        try {
+            const csvData = convertirACSV(datos);
+            const fileName = `FinzApp_Datos_${new Date().toISOString().split('T')[0]}.csv`;
+            
+            // Usar la nueva API de expo-file-system
+            const file = new File(Paths.cache, fileName);
+            await file.write(csvData);
+            
+            await Sharing.shareAsync(file.uri, {
+                mimeType: 'text/csv',
+                dialogTitle: 'Exportar datos en CSV'
+            });
+            
+            Alert.alert('Éxito', 'Datos exportados en formato CSV');
+        } catch (error) {
+            console.error('Error exportando CSV:', error);
+            Alert.alert('Error', 'No se pudo exportar en formato CSV');
+        }
+    };
+
+    // Función para exportar en formato PDF
+    const exportarComoPDF = async (datos: any) => {
+        try {
+            const html = generarHTMLParaPDF(datos);
+            const { uri } = await Print.printToFileAsync({ html });
+            
+            await Sharing.shareAsync(uri, {
+                mimeType: 'application/pdf',
+                dialogTitle: 'Exportar reporte en PDF'
+            });
+            
+            Alert.alert('Éxito', 'Reporte exportado en formato PDF');
+        } catch (error) {
+            console.error('Error exportando PDF:', error);
+            Alert.alert('Error', 'No se pudo exportar en formato PDF');
+        }
+    };
+
+    // Función principal de exportar datos
     const exportarDatos = () => {
         if (!usuario) {
             Alert.alert('Error', 'No hay usuario autenticado');
             return;
         }
 
-        Alert.alert(
-            'Exportar datos',
-            '¿Deseas exportar todos tus datos? Se creará un archivo con toda tu información financiera.',
-            [
-                { text: 'Cancelar', style: 'cancel' },
-                { 
-                    text: 'Exportar', 
-                    onPress: () => {
-                        exportarDatosDB(usuario.id, (exito: boolean, mensaje: string, datos?: any) => {
-                            if (exito && datos) {
-                                // Convertir datos a JSON
-                                const jsonData = JSON.stringify(datos, null, 2);
-                                
-                                // Compartir el archivo
-                                Share.share({
-                                    message: `Datos de Control de Gastos - ${usuario.nombre} ${usuario.apellido}\n\nExportado el: ${new Date(datos.fechaExportacion).toLocaleDateString('es-ES')}\n\nDatos:\n${jsonData}`,
-                                    title: 'Exportar datos de Control de Gastos'
-                                }).then(() => {
-                                    Alert.alert('Éxito', 'Datos exportados exitosamente');
-                                }).catch(() => {
-                                    Alert.alert('Error', 'No se pudo compartir los datos');
-                                });
-                            } else {
-                                Alert.alert('Error', mensaje);
-                            }
-                        });
-                    }
+        // Primero obtener los datos
+        exportarDatosDB(usuario.id, (exito: boolean, mensaje: string, datos?: any) => {
+            if (!exito || !datos) {
+                Alert.alert('Error', mensaje);
+                return;
+            }
+
+            // Mostrar opciones de formato
+            Alert.alert(
+                'Exportar datos',
+                'Selecciona el formato de exportación:\n\n• JSON: Para respaldo e importación\n• CSV: Para Excel/hojas de cálculo\n• PDF: Reporte visual imprimible',
+                [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { 
+                        text: '📄 JSON', 
+                        onPress: () => exportarComoJSON(datos)
+                    },
+                    { 
+                        text: '📊 CSV', 
+                        onPress: () => exportarComoCSV(datos)
+                    },
+                    { 
+                        text: '📑 PDF', 
+                        onPress: () => exportarComoPDF(datos)
+                    },
+                ]
+            );
+        });
+    };
+
+    // Función auxiliar para validar la estructura del archivo de importación
+    const validarEstructuraArchivo = (datos: any): { valido: boolean; errores: string[] } => {
+        const errores: string[] = [];
+
+        // Validar campos obligatorios
+        if (!datos.version) {
+            errores.push('Falta el campo "version"');
+        } else if (datos.version !== '1.0.0') {
+            errores.push(`Versión no compatible: ${datos.version} (se requiere 1.0.0)`);
+        }
+
+        if (!datos.fechaExportacion) {
+            errores.push('Falta la fecha de exportación');
+        }
+
+        if (!datos.usuario) {
+            errores.push('Falta información del usuario');
+        }
+
+        if (!datos.billeteras || !Array.isArray(datos.billeteras)) {
+            errores.push('Falta el listado de billeteras o no es un array');
+        } else {
+            // Validar estructura de cada billetera
+            datos.billeteras.forEach((b: any, index: number) => {
+                if (!b.nombre) errores.push(`Billetera ${index + 1}: falta el nombre`);
+                if (b.saldo === undefined) errores.push(`Billetera ${index + 1}: falta el saldo`);
+            });
+        }
+
+        if (!datos.transacciones || !Array.isArray(datos.transacciones)) {
+            errores.push('Falta el listado de transacciones o no es un array');
+        } else {
+            // Validar estructura de transacciones (solo primeras 5 si hay muchas)
+            const muestra = datos.transacciones.slice(0, 5);
+            muestra.forEach((t: any, index: number) => {
+                if (!t.tipo || !['ingreso', 'gasto'].includes(t.tipo)) {
+                    errores.push(`Transacción ${index + 1}: tipo inválido`);
                 }
-            ]
-        );
+                if (t.monto === undefined || isNaN(t.monto)) {
+                    errores.push(`Transacción ${index + 1}: monto inválido`);
+                }
+            });
+        }
+
+        return { valido: errores.length === 0, errores };
+    };
+
+    // Función auxiliar para generar resumen de preview
+    const generarResumenImportacion = (datos: any): string => {
+        const billeteras = datos.billeteras || [];
+        const transacciones = datos.transacciones || [];
+        
+        // Calcular totales
+        let totalIngresos = 0;
+        let totalGastos = 0;
+        transacciones.forEach((t: any) => {
+            if (t.tipo === 'ingreso') totalIngresos += t.monto;
+            else totalGastos += t.monto;
+        });
+
+        // Nombres de billeteras (máximo 3)
+        const nombresBilleteras = billeteras
+            .slice(0, 3)
+            .map((b: any) => `• ${b.nombre}`)
+            .join('\n');
+        const masBilleteras = billeteras.length > 3 ? `\n• ... y ${billeteras.length - 3} más` : '';
+
+        // Fecha de exportación
+        const fechaExport = datos.fechaExportacion 
+            ? new Date(datos.fechaExportacion).toLocaleDateString('es-ES', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            })
+            : 'Desconocida';
+
+        return `📅 Exportado: ${fechaExport}\n\n` +
+               `📁 BILLETERAS (${billeteras.length}):\n${nombresBilleteras}${masBilleteras}\n\n` +
+               `💰 TRANSACCIONES (${transacciones.length}):\n` +
+               `• Ingresos: $${totalIngresos.toLocaleString()}\n` +
+               `• Gastos: $${totalGastos.toLocaleString()}\n` +
+               `• Balance neto: $${(totalIngresos - totalGastos).toLocaleString()}`;
+    };
+
+    // Función para ejecutar la importación según el modo
+    const ejecutarImportacion = (datosImportados: any, modoReemplazo: boolean) => {
+        if (!usuario) return;
+
+        const realizarImportacion = () => {
+            importarDatosDB(usuario.id, datosImportados, (exito: boolean, mensaje: string) => {
+                if (exito) {
+                    Alert.alert(
+                        '✅ Importación exitosa',
+                        mensaje + '\n\nSerás redirigido al inicio para ver tus datos.',
+                        [
+                            { 
+                                text: 'Ver mis datos', 
+                                onPress: () => router.replace('/(tabs)/inicio')
+                            }
+                        ]
+                    );
+                } else {
+                    Alert.alert('❌ Error al importar', mensaje);
+                }
+            });
+        };
+
+        if (modoReemplazo) {
+            // Primero eliminar datos existentes, luego importar
+            resetearDatosDB(usuario.id, (exito: boolean, mensaje: string) => {
+                if (exito) {
+                    realizarImportacion();
+                } else {
+                    Alert.alert('Error', 'No se pudieron eliminar los datos existentes: ' + mensaje);
+                }
+            });
+        } else {
+            // Agregar a datos existentes
+            realizarImportacion();
+        }
     };
 
     const importarDatos = async () => {
@@ -338,65 +654,108 @@ export default function Configuracion() {
                 return;
             }
 
+            // Verificar extensión del archivo
+            const nombreArchivo = file.name || '';
+            if (!nombreArchivo.toLowerCase().endsWith('.json') && !nombreArchivo.toLowerCase().endsWith('.txt')) {
+                Alert.alert(
+                    '⚠️ Archivo no compatible',
+                    'Por favor selecciona un archivo JSON exportado desde FinzApp.\n\nFormatos aceptados: .json, .txt'
+                );
+                return;
+            }
+
             // Leer el contenido del archivo
             const response = await fetch(file.uri);
             const contenido = await response.text();
 
+            // Verificar que el archivo no esté vacío
+            if (!contenido || contenido.trim().length === 0) {
+                Alert.alert('⚠️ Archivo vacío', 'El archivo seleccionado está vacío.');
+                return;
+            }
+
             try {
                 const datosImportados = JSON.parse(contenido);
 
-                // Validar que sea un archivo de exportación válido
-                if (!datosImportados.usuario || !datosImportados.billeteras || !datosImportados.transacciones) {
+                // Validar estructura del archivo
+                const validacion = validarEstructuraArchivo(datosImportados);
+                if (!validacion.valido) {
                     Alert.alert(
-                        'Archivo inválido',
-                        'El archivo seleccionado no tiene el formato correcto para importar datos.'
+                        '❌ Archivo inválido',
+                        'El archivo no tiene el formato correcto:\n\n' + 
+                        validacion.errores.slice(0, 3).map(e => `• ${e}`).join('\n') +
+                        (validacion.errores.length > 3 ? `\n\n... y ${validacion.errores.length - 3} errores más` : '') +
+                        '\n\n¿Es este un archivo exportado desde FinzApp?'
                     );
                     return;
                 }
 
-                // Confirmar importación
+                // Generar resumen para preview
+                const resumen = generarResumenImportacion(datosImportados);
+
+                // Mostrar preview y opciones de importación
                 Alert.alert(
-                    'Confirmar importación',
-                    `¿Deseas importar los siguientes datos?\n\n• ${datosImportados.billeteras.length} billeteras\n• ${datosImportados.transacciones.length} transacciones\n• Exportado el: ${new Date(datosImportados.fechaExportacion).toLocaleDateString('es-ES')}\n\nEstos datos se agregarán a tu información actual.`,
+                    '📥 Vista previa de importación',
+                    resumen,
                     [
-                        { text: 'Cancelar', style: 'cancel' },
                         { 
-                            text: 'Importar', 
+                            text: 'Cancelar', 
+                            style: 'cancel' 
+                        },
+                        { 
+                            text: '➕ Agregar',
                             onPress: () => {
-                                importarDatosDB(usuario.id, datosImportados, (exito: boolean, mensaje: string) => {
-                                    if (exito) {
-                                        Alert.alert(
-                                            'Importación exitosa',
-                                            mensaje,
-                                            [
-                                                { 
-                                                    text: 'OK', 
-                                                    onPress: () => {
-                                                        // Redirigir al inicio para ver los nuevos datos
-                                                        router.replace('/(tabs)/inicio');
-                                                    }
-                                                }
-                                            ]
-                                        );
-                                    } else {
-                                        Alert.alert('Error al importar', mensaje);
-                                    }
-                                });
+                                Alert.alert(
+                                    'Confirmar importación',
+                                    'Los datos se AGREGARÁN a tu información actual.\n\n' +
+                                    'Se crearán nuevas billeteras y transacciones sin afectar las existentes.',
+                                    [
+                                        { text: 'Cancelar', style: 'cancel' },
+                                        { 
+                                            text: 'Confirmar', 
+                                            onPress: () => ejecutarImportacion(datosImportados, false)
+                                        }
+                                    ]
+                                );
+                            }
+                        },
+                        { 
+                            text: '🔄 Reemplazar',
+                            style: 'destructive',
+                            onPress: () => {
+                                Alert.alert(
+                                    '⚠️ Confirmar reemplazo',
+                                    'ADVERTENCIA: Esta acción eliminará TODOS tus datos actuales y los reemplazará con los datos del archivo.\n\n' +
+                                    'Esta acción NO se puede deshacer.',
+                                    [
+                                        { text: 'Cancelar', style: 'cancel' },
+                                        { 
+                                            text: 'REEMPLAZAR TODO', 
+                                            style: 'destructive',
+                                            onPress: () => ejecutarImportacion(datosImportados, true)
+                                        }
+                                    ]
+                                );
                             }
                         }
                     ]
                 );
             } catch (parseError) {
                 Alert.alert(
-                    'Error de formato',
-                    'El archivo seleccionado no contiene datos en formato JSON válido.'
+                    '❌ Error de formato',
+                    'El archivo seleccionado no contiene datos JSON válidos.\n\n' +
+                    'Asegúrate de seleccionar un archivo exportado desde FinzApp (formato .json).'
                 );
             }
         } catch (error) {
             console.error('Error al importar datos:', error);
             Alert.alert(
-                'Error',
-                'No se pudo leer el archivo seleccionado. Asegúrate de que sea un archivo de texto válido.'
+                '❌ Error de lectura',
+                'No se pudo leer el archivo seleccionado.\n\n' +
+                'Posibles causas:\n' +
+                '• El archivo está dañado\n' +
+                '• No tienes permisos de lectura\n' +
+                '• El archivo es demasiado grande'
             );
         }
     };
