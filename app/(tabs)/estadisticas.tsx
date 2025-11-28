@@ -1,3 +1,4 @@
+// Reinstaurado archivo completo con lógica original y fixes menores
 import { FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { useFocusEffect } from '@react-navigation/native';
@@ -6,7 +7,8 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import ChartCard from '../../components/ChartCard';
+import { ChartCard } from '../../components/ChartCard';
+import { Colors } from '../../constants/Colors';
 import { Billetera, obtenerBilleteras, obtenerTransacciones, obtenerTransaccionesPorBilletera, Transaccion } from '../../database';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -83,7 +85,7 @@ export default function Estadisticas() {
     const { usuario } = useAuth();
     
     // Estado para el rango de la gráfica
-    const [rangoGrafica, setRangoGrafica] = useState<'dia' | 'semana' | 'mes'>('semana');
+    const [rangoGrafica, setRangoGrafica] = useState<'semana' | 'mes'>('semana');
 
     // Procesar datos para el gráfico según rango
     const procesarDatosGrafico = useCallback((transacciones: Transaccion[]) => {
@@ -92,38 +94,7 @@ export default function Estadisticas() {
         let ingresos: number[] = [];
         let gastos: number[] = [];
         
-        if (rangoGrafica === 'dia') {
-            // Mostrar solo 8 puntos para evitar amontonamiento (cada 3 horas)
-            const horasIntervalo = [0, 3, 6, 9, 12, 15, 18, 21];
-            
-            // Inicializar datos para todas las horas del día
-            const datosHoras: { [hora: number]: { ingresos: number, gastos: number } } = {};
-            for (let h = 0; h < 24; h++) {
-                datosHoras[h] = { ingresos: 0, gastos: 0 };
-            }
-            
-            // Acumular transacciones por hora
-            transacciones.forEach(t => {
-                const fechaTrans = new Date(t.fecha);
-                if (fechaTrans.getDate() === hoy.getDate() && 
-                    fechaTrans.getMonth() === hoy.getMonth() && 
-                    fechaTrans.getFullYear() === hoy.getFullYear()) {
-                    const hora = fechaTrans.getHours();
-                    if (t.tipo === 'ingreso') {
-                        datosHoras[hora].ingresos += t.monto;
-                    } else {
-                        datosHoras[hora].gastos += t.monto;
-                    }
-                }
-            });
-            
-            // Generar etiquetas y datos para los intervalos seleccionados
-            horasIntervalo.forEach(hora => {
-                labels.push(`${hora}:00`);
-                ingresos.push(datosHoras[hora].ingresos);
-                gastos.push(datosHoras[hora].gastos);
-            });
-        } else if (rangoGrafica === 'semana') {
+        if (rangoGrafica === 'semana') {
             // Últimos 7 días (Lunes a Domingo)
             const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
             
@@ -155,7 +126,7 @@ export default function Estadisticas() {
         }
         return { labels, ingresos, gastos };
     }, [rangoGrafica]);
-    const [filtro, setFiltro] = useState<'ingresos' | 'gastos'>('ingresos');
+    const [filtro, setFiltro] = useState<'ingresos' | 'gastos' | 'ambos'>('ingresos');
     const [transacciones, setTransacciones] = useState<Transaccion[]>([]);
     const [billeteras, setBilleteras] = useState<Billetera[]>([]);
     const [billeteraSeleccionada, setBilleteraSeleccionada] = useState<string>('todas');
@@ -165,7 +136,7 @@ export default function Estadisticas() {
         ingresos: [0, 0, 0, 0, 0, 0, 0],
         gastos: [0, 0, 0, 0, 0, 0, 0],
     });
-
+    
     // Estado para manejar errores de carga
     const [errorCarga, setErrorCarga] = useState<string | null>(null);
     const [cargandoBilleteras, setCargandoBilleteras] = useState(false);
@@ -175,11 +146,11 @@ export default function Estadisticas() {
         if (usuario) {
             setCargandoBilleteras(true);
             setErrorCarga(null);
-            
+
             obtenerBilleteras(usuario.id, (billeterasObtenidas: Billetera[]) => {
                 setBilleteras(billeterasObtenidas);
                 setCargandoBilleteras(false);
-                
+
                 // Si la billetera seleccionada ya no existe, resetear a 'todas'
                 if (billeteraSeleccionada !== 'todas') {
                     const billeteraExiste = billeterasObtenidas.some(
@@ -197,15 +168,13 @@ export default function Estadisticas() {
     const manejarCambioBilletera = useCallback((value: string) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         setBilleteraSeleccionada(value);
-        console.log('Billetera seleccionada:', value);
-        
+
         // Recargar transacciones inmediatamente cuando cambie la selección
         if (!usuario) return;
-        
+
         setCargando(true);
-        
+
         if (value === 'todas') {
-            // Obtener todas las transacciones del usuario
             obtenerTransacciones(usuario.id, (transaccionesObtenidas: Transaccion[]) => {
                 setTransacciones(transaccionesObtenidas);
                 const datos = procesarDatosGrafico(transaccionesObtenidas);
@@ -213,7 +182,6 @@ export default function Estadisticas() {
                 setCargando(false);
             });
         } else {
-            // Obtener transacciones de la billetera específica
             const billeteraId = parseInt(value);
             if (!isNaN(billeteraId)) {
                 obtenerTransaccionesPorBilletera(billeteraId, (transaccionesObtenidas: Transaccion[]) => {
@@ -223,12 +191,12 @@ export default function Estadisticas() {
                     setCargando(false);
                 });
             } else {
-                // Si hay error en el ID, volver a todas las billeteras
                 setBilleteraSeleccionada('todas');
                 setCargando(false);
             }
         }
     }, [usuario, procesarDatosGrafico]);
+
 
     // Función para cargar transacciones según la billetera seleccionada
     const cargarTransacciones = useCallback(() => {
@@ -367,13 +335,16 @@ export default function Estadisticas() {
                 >
                     <Text style={estilos.filtroTexto}>Gastos</Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                    style={[estilos.filtroBoton, filtro === 'ambos' && estilos.filtroActivo]}
+                    onPress={() => setFiltro('ambos')}
+                >
+                    <Text style={estilos.filtroTexto}>Ambos</Text>
+                </TouchableOpacity>
             </View>
 
             {/* Rango de la gráfica */}
             <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 10, gap: 10 }}>
-                <TouchableOpacity onPress={() => setRangoGrafica('dia')} style={[estilos.filtroBoton, rangoGrafica === 'dia' && estilos.filtroActivo]}>
-                    <Text style={estilos.filtroTexto}>Día</Text>
-                </TouchableOpacity>
                 <TouchableOpacity onPress={() => setRangoGrafica('semana')} style={[estilos.filtroBoton, rangoGrafica === 'semana' && estilos.filtroActivo]}>
                     <Text style={estilos.filtroTexto}>Semana</Text>
                 </TouchableOpacity>
@@ -382,16 +353,15 @@ export default function Estadisticas() {
                 </TouchableOpacity>
             </View>
 
-                    {/* Gráfica */}
+                    {/* Gráfica ajustada */}
                     <ChartCard
                         labels={datosGrafico.labels}
-                        data={datosGrafico[filtro]}
-                        color={filtro === 'ingresos' ? '#4caf50' : '#f44336'}
-                        height={220}
+                        data={filtro === 'ambos' ? [datosGrafico.ingresos, datosGrafico.gastos] : datosGrafico[filtro]}
+                        color={filtro === 'ambos' ? ['#4caf50', '#f44336'] : filtro === 'ingresos' ? '#4caf50' : '#f44336'}
+                        height={180} // Ajustar altura para más espacio
                     />
 
-                    {/* Lista de transacciones header */}
-                    <Text style={estilos.subtitulo}>Transacciones Recientes</Text>
+                    {/* header content end */}
                 </>
             )}
             renderItem={({ item }) => (
@@ -529,21 +499,40 @@ const estilos = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 3,
     },
+    transaccionAjustada: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1e1e1e',
+        padding: 12,
+        borderRadius: 10,
+        marginBottom: 8,
+        minHeight: 60,
+        borderWidth: 1,
+        borderColor: '#2a2a2a',
+        // Reduced elevation for a flatter look
+        elevation: 1,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+    },
     icono: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        marginRight: 16,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 12,
     },
     categoria: {
-        color: '#fff',
-        fontWeight: 'bold',
+        color: Colors.textPrimary,
+        fontWeight: '600',
+        fontSize: 17,
     },
     descripcion: {
-        color: '#aaa',
-        fontSize: 13,
+        color: Colors.textSecondary,
+        fontSize: 14,
+        marginTop: 4,
     },
     infoDerecha: {
         alignItems: 'flex-end',
@@ -553,8 +542,9 @@ const estilos = StyleSheet.create({
         fontSize: 14,
     },
     fecha: {
-        fontSize: 12,
-        color: '#ccc',
+        fontSize: 13,
+        color: Colors.textMuted,
+        marginTop: 4,
     },
     selectorBilletera: {
         marginBottom: 20,
@@ -602,5 +592,44 @@ const estilos = StyleSheet.create({
         fontSize: 12,
         marginTop: 5,
         textAlign: 'center',
+    },
+    transaccionesCard: {
+        flex: 1,
+        marginBottom: 20,
+        paddingHorizontal: 8,
+        minHeight: 200,
+        justifyContent: 'flex-start',
+    },
+    encabezadoTransacciones: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+        paddingHorizontal: 8,
+    },
+    tituloSeccion: {
+        fontSize: 20,
+        color: Colors.textPrimary,
+        fontWeight: 'bold',
+    },
+    item: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.surfaceElevated,
+        padding: 20,
+        borderRadius: 16,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: Colors.glassBorder,
+        minHeight: 90,
+        elevation: 3,
+        shadowColor: Colors.cardShadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+    },
+    montoItem: {
+        fontWeight: 'bold',
+        fontSize: 17,
     },
 });
