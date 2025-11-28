@@ -95,7 +95,6 @@ export default function IniciarSesion() {
                                 <View>
                                     <Text style={estilos.etiqueta}>Bienvenido de vuelta</Text>
                             <Text style={estilos.titulo}>Inicia sesión</Text>
-                            <Text style={estilos.subtitulo}>Tu tablero financiero te espera con insights renovados.</Text>
                         </View>
                         <View style={estilos.iconWrapper}>
                             <Ionicons name="lock-closed" size={28} color={Colors.white} />

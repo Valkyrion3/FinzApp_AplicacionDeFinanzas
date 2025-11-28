@@ -6,9 +6,11 @@ import { useState } from 'react';
 import { Alert, ScrollView, Share, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { exportarDatos as exportarDatosDB, importarDatos as importarDatosDB, obtenerEstadisticas, resetearDatos as resetearDatosDB } from '../../database';
 import { useAuth } from '../../hooks/useAuth';
+import { useSafeBack } from '../../hooks/useSafeBack';
 
 export default function Configuracion() {
     const router = useRouter();
+    const safeBack = useSafeBack();
     const { usuario } = useAuth();
 
     const [notificaciones, setNotificaciones] = useState(true);
@@ -185,7 +187,7 @@ export default function Configuracion() {
         <ScrollView style={estilos.contenedor}>
             <StatusBar style="light" />
             
-            <TouchableOpacity onPress={() => router.back()} style={estilos.retroceso}>
+            <TouchableOpacity onPress={() => safeBack('perfil')} style={estilos.retroceso}>
                 <Ionicons name="arrow-back" size={24} color="white" />
             </TouchableOpacity>
 
@@ -240,7 +242,7 @@ export default function Configuracion() {
                 
                 <TouchableOpacity 
                     style={estilos.opcionBoton} 
-                    onPress={() => router.push('/(tabs)/estadisticas-usuario')}
+                    onPress={() => router.push('estadisticas-usuario' as any)}
                 >
                     <View style={estilos.opcionIzquierda}>
                         <View style={[estilos.icono, { backgroundColor: '#9C27B0' }]}>

@@ -1,15 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { TextField } from '../../components/ui/TextField';
 import { Billetera, crearTransaccion, obtenerBilleteras } from '../../database';
 import { useAuth } from '../../hooks/useAuth';
+import { useSafeBack } from '../../hooks/useSafeBack';
 
 export default function NuevaTransaccion() {
     const router = useRouter();
+    const params = useLocalSearchParams();
+    const safeBack = useSafeBack();
+    const incomingBilleteraId = (params as any).billetera_id || (params as any).billeteraId || '';
     const { usuario } = useAuth();
     console.log('Render NuevaTransaccion');
 
@@ -87,18 +91,22 @@ export default function NuevaTransaccion() {
                 
                 if (exito) {
                     Alert.alert('Éxito', 'Transacción creada exitosamente.', [
-                        { 
-                            text: 'OK', 
-                            onPress: () => {
-                                // Limpiar formulario
-                                setTipo('');
-                                setBilleteraId('');
-                                setCategoria('');
-                                setMonto('');
-                                setDescripcion('');
-                                router.back();
-                            }
-                        }
+                                { 
+                                    text: 'OK', 
+                                    onPress: () => {
+                                        // Limpiar formulario
+                                        setTipo('');
+                                        setBilleteraId('');
+                                        setCategoria('');
+                                        setMonto('');
+                                        setDescripcion('');
+                                        if (incomingBilleteraId) {
+                                            safeBack('detalle-billetera', { id: incomingBilleteraId });
+                                        } else {
+                                            safeBack('inicio');
+                                        }
+                                    }
+                                }
                     ]);
                 } else {
                     Alert.alert('Error', mensaje);
@@ -112,7 +120,13 @@ export default function NuevaTransaccion() {
             <StatusBar style="light" />
 
             {/* Botón retroceso */}
-            <TouchableOpacity onPress={() => router.back()} style={estilos.retroceso}>
+            <TouchableOpacity onPress={() => {
+                if (incomingBilleteraId) {
+                    safeBack('detalle-billetera', { id: incomingBilleteraId });
+                } else {
+                    safeBack('inicio');
+                }
+            }} style={estilos.retroceso}>
                 <Ionicons name="arrow-back" size={24} color="white" />
             </TouchableOpacity>
 

@@ -53,7 +53,7 @@ export default function WelcomeScreen() {
           <View style={styles.featureList}>
             <View style={styles.featureItem}>
               <Ionicons name="sparkles" size={20} color={Colors.secondary} />
-              <Text style={styles.featureText}>Paneles vibrantes con información en tiempo real.</Text>
+              <Text style={styles.featureText}>Paneles con información de tus finanzas.</Text>
             </View>
             <View style={styles.featureItem}>
               <Ionicons name="wallet" size={20} color={Colors.secondary} />
@@ -91,15 +91,16 @@ const styles = StyleSheet.create({
   },
   badge: {
     color: Colors.secondary,
-    fontWeight: '600',
+    fontWeight: '700',
+    fontSize: 32,
     letterSpacing: 1.5,
     textTransform: 'uppercase',
     marginBottom: 12,
   },
   title: {
-    fontSize: 32,
+    fontSize: 26,
     lineHeight: 40,
-    fontWeight: '800',
+    fontWeight: '700',
     color: Colors.textPrimary,
     marginBottom: 12,
   },

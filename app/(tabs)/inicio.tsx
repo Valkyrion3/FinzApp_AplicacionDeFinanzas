@@ -82,12 +82,10 @@ export default function Inicio() {
                     </Text>
                     <Text style={estilos.subtituloSaludo}>Gestiona tus finanzas</Text>
                 </View>
-                <TouchableOpacity onPress={() => router.push('/(tabs)/buscar' as any)}>
+                <TouchableOpacity onPress={() => router.push('buscar' as any)}>
                     <Ionicons name="search" size={24} color={Colors.white} />
                 </TouchableOpacity>
             </View>
-
-            {/* Panel principal consolidado */}
             <GlassCard style={estilos.panelPrincipal} highlight>
                 {/* Saldo total */}
                 <View style={estilos.seccionSaldo}>
@@ -104,7 +102,7 @@ export default function Inicio() {
                         </View>
                         <TouchableOpacity 
                             style={estilos.botonCrear} 
-                            onPress={() => router.push('/(tabs)/nueva-billetera' as any)}
+                            onPress={() => router.push('nueva-billetera' as any)}
                         >
                             <Ionicons name="add" size={20} color="white" />
                         </TouchableOpacity>
@@ -155,7 +153,7 @@ export default function Inicio() {
                 }}>
                     <View style={estilos.encabezadoTransacciones}>
                         <Text style={estilos.tituloSeccion}>Últimas transacciones</Text>
-                        <TouchableOpacity onPress={() => router.push('/(tabs)/estadisticas' as any)}>
+                        <TouchableOpacity onPress={() => router.push('estadisticas' as any)}>
                             <Text style={estilos.verTodas}>Ver todas</Text>
                         </TouchableOpacity>
                     </View>
@@ -180,7 +178,7 @@ export default function Inicio() {
                                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                                         console.log('🔄 Navegando a editar transacción:', item.id);
                                         router.push({
-                                            pathname: '/(tabs)/editar-transaccion' as any,
+                                            pathname: 'editar-transaccion' as any,
                                             params: {
                                                 id: item.id.toString(),
                                                 categoria: item.categoria,
@@ -235,7 +233,7 @@ export default function Inicio() {
             {/* Botón flotante */}
             <TouchableOpacity
                 style={estilos.botonFlotante}
-                onPress={() => router.push('/(tabs)/nueva-transaccion' as any)}
+                onPress={() => router.push('nueva-transaccion' as any)}
             >
                 <Ionicons name="add" size={28} color={Colors.white} />
             </TouchableOpacity>

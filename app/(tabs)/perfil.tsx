@@ -49,7 +49,7 @@ export default function Perfil() {
                     <PrimaryButton
                         label="Editar perfil"
                         small
-                        onPress={() => router.push('/(tabs)/editar-perfil')}
+                        onPress={() => router.push('editar-perfil' as any)}
                         icon={<Ionicons name="person" size={18} color={Colors.white} />}
                     />
                 </GlassCard>
@@ -59,7 +59,7 @@ export default function Perfil() {
 
                     <TouchableOpacity
                         style={estilos.opcion}
-                        onPress={() => router.push('/(tabs)/configuracion')}
+                        onPress={() => router.push('configuracion' as any)}
                     >
                         <View style={[estilos.icono, { backgroundColor: Colors.secondary }]}>
                             <Ionicons name="settings" size={20} color={Colors.white} />
@@ -70,7 +70,7 @@ export default function Perfil() {
 
                     <TouchableOpacity
                         style={estilos.opcion}
-                        onPress={() => router.push('/(tabs)/privacidad')}
+                        onPress={() => router.push('privacidad' as any)}
                     >
                         <View style={[estilos.icono, { backgroundColor: Colors.primary }]}>
                             <MaterialCommunityIcons name="lock-outline" size={20} color={Colors.white} />
