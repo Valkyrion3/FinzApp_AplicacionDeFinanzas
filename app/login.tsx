@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Colors } from '../constants/Colors';
 
 export default function LoginScreen() {
@@ -10,9 +10,43 @@ export default function LoginScreen() {
 
   const handleLogin = () => {
     if (!email || !password) {
-      alert('Por favor llena todos los campos.');
+      Alert.alert('Error', 'Por favor llena todos los campos.');
       return;
-    }    alert('Simulando inicio de sesión...');
+    }
+
+    // Validate email domain and format
+    const allowedDomains = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'live.com', 'aol.com'];
+    const emailMatch = /^([\w.+-]+)@([\w-]+\.[\w-.]+)$/.exec(email.trim());
+    if (!emailMatch) {
+      Alert.alert('Error', 'Ingresa un correo electrónico válido.');
+      return;
+    }
+    const domain = emailMatch[2].toLowerCase();
+    if (!allowedDomains.includes(domain)) {
+      Alert.alert('Error', 'El correo debe pertenecer a un proveedor común (gmail, hotmail, outlook, yahoo, live, aol).');
+      return;
+    }
+
+    // Validate password: min 6, contains letters, at least one uppercase and one special char
+    const pw = password;
+    if (pw.length < 6) {
+      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+    if (!/[A-Za-z]/.test(pw)) {
+      Alert.alert('Error', 'La contraseña debe contener letras.');
+      return;
+    }
+    if (!/[A-Z]/.test(pw)) {
+      Alert.alert('Error', 'La contraseña debe contener al menos una letra mayúscula.');
+      return;
+    }
+    if (!/[^A-Za-z0-9]/.test(pw)) {
+      Alert.alert('Error', 'La contraseña debe contener al menos un carácter especial.');
+      return;
+    }
+
+    Alert.alert('Éxito', 'Simulando inicio de sesión...');
     router.push('/(tabs)/inicio' as any);
   };
 

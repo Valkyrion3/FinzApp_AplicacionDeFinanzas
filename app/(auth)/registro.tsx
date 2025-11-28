@@ -43,24 +43,36 @@ export default function Registro() {
             return;
         }
 
-        if (contrasenia.length < 6) {
-            Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres.');
+        // Validar correo: formato y dominio permitido
+        const allowedDomains = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'live.com', 'aol.com'];
+        const correoTrimmed = correo.trim();
+        const emailMatch = /^([\w.+-]+)@([A-Za-z0-9.-]+)\.([A-Za-z]{2,})$/.exec(correoTrimmed);
+        if (!emailMatch) {
+            Alert.alert('Error', 'Por favor ingresa un correo válido.');
+            return;
+        }
+        const domain = (correoTrimmed.split('@')[1] || '').toLowerCase();
+        if (!allowedDomains.some(d => domain.endsWith(d))) {
+            Alert.alert('Error', 'El correo no es válido, intente con otro.');
             return;
         }
 
-        // Validar formato de correo básico
-        // Esta expresión regular valida si un string tiene formato de correo electrónico.
-        // Detalle del patrón:
-        // ^         => Inicio del texto
-        // [^\s@]+   => Uno o más caracteres que NO sean espacios ni arrobas (parte del nombre del correo)
-        // @         => Debe haber una arroba
-        // [^\s@]+   => Uno o más caracteres que NO sean espacios ni arrobas (parte del dominio)
-        // \.        => Un punto literal (ej. el punto de ".com")
-        // [^\s@]+   => Uno o más caracteres que NO sean espacios ni arrobas (ej. "com", "org")
-        // $         => Fin del texto
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(correo)) {
-            Alert.alert('Error', 'Por favor ingresa un correo válido.');
+        // Validar contraseña: mostrar todos los errores juntos
+        const erroresContrasenia = [];
+        if (contrasenia.length < 6) {
+            erroresContrasenia.push('• Al menos 6 caracteres');
+        }
+        if (!/[A-Za-z]/.test(contrasenia)) {
+            erroresContrasenia.push('• Al menos una letra');
+        }
+        if (!/[A-Z]/.test(contrasenia)) {
+            erroresContrasenia.push('• Al menos una letra mayúscula');
+        }
+        if (!/[^A-Za-z0-9]/.test(contrasenia)) {
+            erroresContrasenia.push('• Al menos un carácter especial');
+        }
+        if (erroresContrasenia.length > 0) {
+            Alert.alert('La contraseña debe cumplir:', erroresContrasenia.join('\n'));
             return;
         }
 
@@ -109,7 +121,7 @@ export default function Registro() {
                         <GlassCard style={estilos.card}>
                             <View style={estilos.header}>
                                 <View>
-                                    <Text style={estilos.etiqueta}>Crea tu perfil=</Text>
+                                    <Text style={estilos.etiqueta}>Crea tu perfil</Text>
                             <Text style={estilos.titulo}>Registro</Text>
                         </View>
                         <View style={estilos.iconWrapper}>
