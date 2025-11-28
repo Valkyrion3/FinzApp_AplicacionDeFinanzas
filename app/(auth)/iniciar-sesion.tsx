@@ -34,12 +34,39 @@ export default function IniciarSesion() {
     const manejarInicioSesion = () => {
         setError(null);
 
-        // Validate credentials
-        const validacion = validarCredencialesLogin(correo, contrasena);
-        if (!validacion.valido) {
-            const mensaje = validacion.errores.join('\n');
-            setError(mensaje);
-            log.warn('Login validation failed', { errores: validacion.errores });
+        // Validación estricta de correo y contraseña
+        const allowedDomains = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'live.com', 'aol.com'];
+        const correoTrimmed = correo.trim();
+        const emailMatch = /^([\w.+-]+)@([A-Za-z0-9.-]+)\.([A-Za-z]{2,})$/.exec(correoTrimmed);
+        if (!emailMatch) {
+            setError('Por favor ingresa un correo válido.');
+            log.warn('Login validation failed', { error: 'Correo inválido' });
+            return;
+        }
+        const domain = (correoTrimmed.split('@')[1] || '').toLowerCase();
+        if (!allowedDomains.some(d => domain.endsWith(d))) {
+            setError('El correo debe ser de gmail, hotmail, outlook, yahoo, live o aol.');
+            log.warn('Login validation failed', { error: 'Dominio no permitido' });
+            return;
+        }
+        if (contrasena.length < 6) {
+            setError('La contraseña debe tener al menos 6 caracteres.');
+            log.warn('Login validation failed', { error: 'Contraseña corta' });
+            return;
+        }
+        if (!/[A-Za-z]/.test(contrasena)) {
+            setError('La contraseña debe contener al menos una letra.');
+            log.warn('Login validation failed', { error: 'Sin letra' });
+            return;
+        }
+        if (!/[A-Z]/.test(contrasena)) {
+            setError('La contraseña debe contener al menos una letra mayúscula.');
+            log.warn('Login validation failed', { error: 'Sin mayúscula' });
+            return;
+        }
+        if (!/[^A-Za-z0-9]/.test(contrasena)) {
+            setError('La contraseña debe contener al menos un carácter especial.');
+            log.warn('Login validation failed', { error: 'Sin caracter especial' });
             return;
         }
 
@@ -93,7 +120,7 @@ export default function IniciarSesion() {
                         <GlassCard style={estilos.card}>
                             <View style={estilos.header}>
                                 <View>
-                                    <Text style={estilos.etiqueta}>Bienvenido de vuelta</Text>
+                                    <Text style={estilos.etiqueta}>Bienvenido de Vuelta</Text>
                             <Text style={estilos.titulo}>Inicia sesión</Text>
                         </View>
                         <View style={estilos.iconWrapper}>
