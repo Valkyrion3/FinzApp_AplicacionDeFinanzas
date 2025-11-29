@@ -803,6 +803,232 @@ export default function Configuracion() {
         });
     };
 
+    // ============================================================================
+    // SINCRONIZACIÓN EN LA NUBE
+    // ============================================================================
+    // URL del API - Cambia esto cuando despliegues tu API
+    // Para desarrollo local: 'http://192.168.x.x:4000' (usa tu IP local, no localhost)
+    // Para producción: 'https://tu-api.onrender.com'
+    const API_URL = 'http://192.168.0.105:4000'; // Tu IP local actual
+
+    const [sincronizando, setSincronizando] = useState(false);
+
+    // Subir datos locales a la nube
+    const sincronizarSubir = async () => {
+        if (!usuario) {
+            Alert.alert('Error', 'No hay usuario autenticado');
+            return;
+        }
+
+        Alert.alert(
+            '☁️ Subir a la nube',
+            'Esto subirá todos tus datos locales a la nube. Si ya tienes datos en la nube, serán reemplazados.\n\n¿Deseas continuar?',
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Subir',
+                    onPress: async () => {
+                        setSincronizando(true);
+                        
+                        try {
+                            // Obtener datos locales
+                            exportarDatosDB(usuario.id, async (exito: boolean, mensaje: string, datos?: any) => {
+                                if (!exito || !datos) {
+                                    setSincronizando(false);
+                                    Alert.alert('Error', 'No se pudieron obtener los datos locales');
+                                    return;
+                                }
+
+                                try {
+                                    const response = await fetch(`${API_URL}/sync/upload`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify({
+                                            usuario: datos.usuario,
+                                            billeteras: datos.billeteras,
+                                            transacciones: datos.transacciones,
+                                        }),
+                                    });
+
+                                    const result = await response.json();
+
+                                    if (response.ok && result.success) {
+                                        Alert.alert(
+                                            '✅ Sincronización exitosa',
+                                            result.message + '\n\nTus datos están seguros en la nube.'
+                                        );
+                                    } else {
+                                        Alert.alert('Error', result.error || 'Error al sincronizar');
+                                    }
+                                } catch (fetchError) {
+                                    console.error('Error de conexión:', fetchError);
+                                    Alert.alert(
+                                        '❌ Error de conexión',
+                                        'No se pudo conectar con el servidor.\n\nVerifica que:\n• El API esté corriendo\n• La URL sea correcta\n• Tengas conexión a internet'
+                                    );
+                                }
+                                
+                                setSincronizando(false);
+                            });
+                        } catch (error) {
+                            console.error('Error:', error);
+                            setSincronizando(false);
+                            Alert.alert('Error', 'Error inesperado al sincronizar');
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    // Descargar datos de la nube
+    const sincronizarDescargar = async () => {
+        if (!usuario) {
+            Alert.alert('Error', 'No hay usuario autenticado');
+            return;
+        }
+
+        Alert.alert(
+            '📥 Descargar de la nube',
+            'Esto descargará tus datos de la nube. Puedes elegir si agregar a los datos actuales o reemplazarlos.\n\n¿Qué deseas hacer?',
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Descargar',
+                    onPress: async () => {
+                        setSincronizando(true);
+
+                        try {
+                            const response = await fetch(`${API_URL}/sync/download/${encodeURIComponent(usuario.correo)}`);
+                            const result = await response.json();
+
+                            if (!response.ok) {
+                                setSincronizando(false);
+                                if (response.status === 404) {
+                                    Alert.alert(
+                                        'No hay datos',
+                                        'No se encontraron datos en la nube para tu cuenta.\n\nPrimero debes subir tus datos locales.'
+                                    );
+                                } else {
+                                    Alert.alert('Error', result.error || 'Error al descargar');
+                                }
+                                return;
+                            }
+
+                            // Mostrar resumen y opciones
+                            const resumen = `Datos encontrados en la nube:\n\n` +
+                                `• ${result.billeteras.length} billeteras\n` +
+                                `• ${result.transacciones.length} transacciones\n` +
+                                `• Última sync: ${new Date(result.fechaSync).toLocaleDateString('es-ES')}`;
+
+                            Alert.alert(
+                                '☁️ Datos encontrados',
+                                resumen,
+                                [
+                                    { text: 'Cancelar', style: 'cancel', onPress: () => setSincronizando(false) },
+                                    {
+                                        text: 'Agregar',
+                                        onPress: () => {
+                                            // Importar agregando a datos existentes
+                                            const datosParaImportar = {
+                                                version: '1.0.0',
+                                                fechaExportacion: result.fechaSync,
+                                                usuario: result.usuario,
+                                                billeteras: result.billeteras,
+                                                transacciones: result.transacciones,
+                                            };
+
+                                            importarDatosDB(usuario.id, datosParaImportar, (exito: boolean, mensaje: string) => {
+                                                setSincronizando(false);
+                                                if (exito) {
+                                                    Alert.alert(
+                                                        '✅ Descarga completada',
+                                                        mensaje,
+                                                        [{ text: 'OK', onPress: () => router.replace('/(tabs)/inicio') }]
+                                                    );
+                                                } else {
+                                                    Alert.alert('Error', mensaje);
+                                                }
+                                            });
+                                        }
+                                    },
+                                    {
+                                        text: 'Reemplazar',
+                                        style: 'destructive',
+                                        onPress: () => {
+                                            // Primero eliminar datos locales, luego importar
+                                            resetearDatosDB(usuario.id, (exitoReset: boolean) => {
+                                                if (!exitoReset) {
+                                                    setSincronizando(false);
+                                                    Alert.alert('Error', 'No se pudieron eliminar los datos locales');
+                                                    return;
+                                                }
+
+                                                const datosParaImportar = {
+                                                    version: '1.0.0',
+                                                    fechaExportacion: result.fechaSync,
+                                                    usuario: result.usuario,
+                                                    billeteras: result.billeteras,
+                                                    transacciones: result.transacciones,
+                                                };
+
+                                                importarDatosDB(usuario.id, datosParaImportar, (exito: boolean, mensaje: string) => {
+                                                    setSincronizando(false);
+                                                    if (exito) {
+                                                        Alert.alert(
+                                                            '✅ Datos reemplazados',
+                                                            'Tus datos locales han sido reemplazados con los de la nube.',
+                                                            [{ text: 'OK', onPress: () => router.replace('/(tabs)/inicio') }]
+                                                        );
+                                                    } else {
+                                                        Alert.alert('Error', mensaje);
+                                                    }
+                                                });
+                                            });
+                                        }
+                                    }
+                                ]
+                            );
+                        } catch (error) {
+                            console.error('Error de conexión:', error);
+                            setSincronizando(false);
+                            Alert.alert(
+                                '❌ Error de conexión',
+                                'No se pudo conectar con el servidor.\n\nVerifica que:\n• El API esté corriendo\n• La URL sea correcta\n• Tengas conexión a internet'
+                            );
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    // Verificar estado de conexión con el servidor
+    const verificarConexion = async () => {
+        setSincronizando(true);
+        try {
+            const response = await fetch(`${API_URL}/`, { method: 'GET' });
+            const data = await response.json();
+            
+            if (response.ok && data.status === 'ok') {
+                Alert.alert(
+                    '✅ Conexión exitosa',
+                    `Servidor en línea.\n\nVersión del API: ${data.version}\nEndpoints disponibles: ${data.endpoints?.length || 0}`
+                );
+            } else {
+                Alert.alert('⚠️ Respuesta inesperada', 'El servidor respondió pero con un formato inesperado.');
+            }
+        } catch (error) {
+            Alert.alert(
+                '❌ Sin conexión',
+                `No se pudo conectar al servidor.\n\nURL configurada:\n${API_URL}\n\nVerifica que el API esté corriendo.`
+            );
+        }
+        setSincronizando(false);
+    };
+
     return (
         <ScrollView style={estilos.contenedor}>
             <StatusBar style="light" />
@@ -902,6 +1128,68 @@ export default function Configuracion() {
                     </View>
                     <Ionicons name="chevron-forward" size={18} color="#F44336" />
                 </TouchableOpacity>
+            </View>
+
+            {/* Sección Sincronización en la Nube */}
+            <View style={estilos.seccion}>
+                <Text style={estilos.tituloSeccion}>☁️ Sincronización en la nube</Text>
+                
+                <TouchableOpacity 
+                    style={[estilos.opcionBoton, sincronizando && { opacity: 0.5 }]} 
+                    onPress={verificarConexion}
+                    disabled={sincronizando}
+                >
+                    <View style={estilos.opcionIzquierda}>
+                        <View style={[estilos.icono, { backgroundColor: '#607D8B' }]}>
+                            <MaterialCommunityIcons name="connection" size={18} color="#fff" />
+                        </View>
+                        <View>
+                            <Text style={estilos.textoOpcion}>Verificar conexión</Text>
+                            <Text style={estilos.subtextoOpcion}>Comprobar conexión con el servidor</Text>
+                        </View>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color="#666" />
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                    style={[estilos.opcionBoton, sincronizando && { opacity: 0.5 }]} 
+                    onPress={sincronizarSubir}
+                    disabled={sincronizando}
+                >
+                    <View style={estilos.opcionIzquierda}>
+                        <View style={[estilos.icono, { backgroundColor: '#00BCD4' }]}>
+                            <MaterialCommunityIcons name="cloud-upload" size={18} color="#fff" />
+                        </View>
+                        <View>
+                            <Text style={estilos.textoOpcion}>Subir a la nube</Text>
+                            <Text style={estilos.subtextoOpcion}>Respaldar datos en PostgreSQL</Text>
+                        </View>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color="#666" />
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                    style={[estilos.opcionBoton, sincronizando && { opacity: 0.5 }]} 
+                    onPress={sincronizarDescargar}
+                    disabled={sincronizando}
+                >
+                    <View style={estilos.opcionIzquierda}>
+                        <View style={[estilos.icono, { backgroundColor: '#3F51B5' }]}>
+                            <MaterialCommunityIcons name="cloud-download" size={18} color="#fff" />
+                        </View>
+                        <View>
+                            <Text style={estilos.textoOpcion}>Descargar de la nube</Text>
+                            <Text style={estilos.subtextoOpcion}>Restaurar datos desde PostgreSQL</Text>
+                        </View>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color="#666" />
+                </TouchableOpacity>
+
+                {sincronizando && (
+                    <View style={{ alignItems: 'center', paddingVertical: 10 }}>
+                        <Text style={{ color: '#9C27B0', fontSize: 14 }}>Sincronizando...</Text>
+                    </View>
+                )}
             </View>
 
             {/* Información de la app */}
