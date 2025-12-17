@@ -1,0 +1,11 @@
+Que tal senseí, hago este commit para unas aclaraciones finales..
+
+Los tres contribuimos al desarrollo del proyecto, de manera activa, desde el análisis, 
+diseño, implementación y pruebas, pero por cuestiones de organización, todos los 
+commits se hicieron desde el equipo de marco, por que es el dueño del repositorio..
+Para evitar eso del merge y problemas de consistencia.
+
+Pero el trabajo fue colaborativo, y todos aportamos, mis compañeros ya tenian una base
+desde la materia pasada, solo fue hacer cambios, análisis y pruebas, por algunos detalles.
+
+Sin más que agregar, agradezco su tiempo y comprensión, y Feliz Navidad!..
